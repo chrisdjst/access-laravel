@@ -1,19 +1,38 @@
 # @casamento/admin-rbac
 
-React + TypeScript admin UI for the `casamento/rbac` Laravel package. Provides:
+TypeScript types + API client factory + React Query hooks for the `casamento/rbac` Laravel package. No JSX pages — the host owns UI.
 
-- Pages: `ModulesPage`, `RolesPage`, `RbacPage` (permission matrix)
-- Hooks: `useRbac` (modules, roles, permission sync)
-- API client factory consuming an injected axios instance
-- `RbacProvider` + `adminRbacRoutes()` for React Router composition
+## What's inside
 
-## Status
+```ts
+// Types
+import type { AdminModule, AdminRole, AdminLanguage, RoleModuleEntry } from '@casamento/admin-rbac';
 
-WIP — package skeleton only. Pages/hooks land in PR 4.
+// HTTP factory (HttpClient = anything with get/post/put/delete returning { data: T })
+import { createRbacApi, type RbacApi, type HttpClient } from '@casamento/admin-rbac';
+
+// React provider + hook
+import { RbacProvider, useRbacApi } from '@casamento/admin-rbac';
+
+// React Query hooks
+import {
+  useAdminModules,
+  useUpdateModule,
+  useAdminRoles,
+  useAdminRole,
+  useUpdateRole,
+  useSyncRoleModules,
+  useAdminLanguages,
+  useCreateLanguage,
+  useUpdateLanguage,
+  useDeleteLanguage,
+  useSetDefaultLanguage,
+} from '@casamento/admin-rbac';
+```
 
 ## Install (host app)
 
-```json
+```jsonc
 // host app frontend/package.json
 "dependencies": {
   "@casamento/admin-rbac": "file:../../modularize/frontend"
@@ -21,37 +40,74 @@ WIP — package skeleton only. Pages/hooks land in PR 4.
 ```
 
 ```bash
-# Build the lib once so `dist/` exists
-cd ../../modularize/frontend
+cd C:/workspace/modularize/frontend
 npm install
-npm run build
+npm run build   # generates dist/
 
-# Then install in the host
-cd -          # back to host frontend
-npm install
+cd C:/workspace/casamento/frontend
+npm install --legacy-peer-deps
 ```
 
 ### Hot-reload during development (recommended)
 
 ```bash
-cd C:\workspace\modularize\frontend
+cd C:/workspace/modularize/frontend
 npm link
-cd C:\workspace\casamento\frontend
+cd C:/workspace/casamento/frontend
 npm link @casamento/admin-rbac
+# in modularize/frontend, run `npm run dev` to watch tsc rebuilds
 ```
 
-Now changes in `modularize/frontend/src/` appear in the host app without rebuilding (after the watcher rebuilds `dist/`).
-
-## Usage
+## Setup
 
 ```tsx
-import { RbacProvider, adminRbacRoutes } from '@casamento/admin-rbac';
-import { apiClient } from '@/lib/api/client';
+// host App.tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RbacProvider } from '@casamento/admin-rbac';
+import apiClient from './lib/api/client'; // your axios instance
 
-// In your route config:
-<RbacProvider apiClient={apiClient}>
-  <AdminLayout>
-    {adminRbacRoutes()}
-  </AdminLayout>
-</RbacProvider>
+const queryClient = new QueryClient();
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RbacProvider apiClient={apiClient}>
+        {/* rest of app */}
+      </RbacProvider>
+    </QueryClientProvider>
+  );
+}
 ```
+
+## Using hooks
+
+```tsx
+import { useAdminModules, useUpdateModule } from '@casamento/admin-rbac';
+import { toast } from 'sonner';
+
+export function ModulesPage() {
+  const { data: modules = [], isLoading } = useAdminModules();
+  const update = useUpdateModule({
+    onSuccessMessage: (m) => toast.success(m),
+    onErrorMessage: (m) => toast.error(m),
+  });
+
+  return /* your UI */;
+}
+```
+
+## Peer deps
+
+- `react ^18 || ^19`
+- `@tanstack/react-query ^5`
+
+The package does NOT import axios — it accepts any `HttpClient` shape, so use axios, ky, or a fetch wrapper.
+
+## Build
+
+```bash
+npm run build    # tsc -p tsconfig.build.json
+npm run dev      # watch mode
+```
+
+Outputs `dist/index.js` + `dist/index.d.ts` with sourcemaps and declaration maps.

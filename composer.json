@@ -2,6 +2,7 @@
     "name": "casamento/rbac",
     "description": "Module + role + permission management package — extracted from casamento, reusable across Laravel projects.",
     "type": "library",
+    "version": "0.1.0",
     "license": "MIT",
     "require": {
         "php": "^8.2",

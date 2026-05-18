@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Casamento\Rbac;
 
+use Casamento\Rbac\Models\RoleModulePermission;
+use Casamento\Rbac\Observers\RoleModulePermissionObserver;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,8 +26,7 @@ class RbacServiceProvider extends ServiceProvider
 
         $this->registerRoutes();
 
-        // Models, observers, and Spatie overrides are wired in subsequent
-        // PRs as files move into the package.
+        RoleModulePermission::observe(RoleModulePermissionObserver::class);
     }
 
     protected function registerRoutes(): void

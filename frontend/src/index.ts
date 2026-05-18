@@ -1,4 +1,35 @@
-// Entry point for @casamento/admin-rbac.
-// Exports will be populated in PR 4 as pages, hooks, and types move in.
+export { VERSION } from './version';
 
-export const VERSION = '0.1.0';
+// Types
+export type {
+  AdminLanguage,
+  AdminModule,
+  AdminRole,
+  LanguagePayload,
+  RoleModuleEntry,
+  SyncRoleModulesPayload,
+  UpdateModulePayload,
+  UpdateRolePayload,
+} from './types';
+
+// API factory
+export { createRbacApi, type HttpClient, type RbacApi } from './api/rbac';
+
+// Provider + hook
+export { RbacProvider, useRbacApi } from './provider';
+
+// React Query hooks
+export {
+  useAdminLanguages,
+  useAdminModules,
+  useAdminRole,
+  useAdminRoles,
+  useCreateLanguage,
+  useDeleteLanguage,
+  useSetDefaultLanguage,
+  useSyncRoleModules,
+  useUpdateLanguage,
+  useUpdateModule,
+  useUpdateRole,
+  type MutationCallbacks,
+} from './hooks/useRbac';

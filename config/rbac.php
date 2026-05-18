@@ -8,21 +8,23 @@ return [
     | Route prefix
     |--------------------------------------------------------------------------
     |
-    | All package routes are registered under this prefix. Default 'admin'
-    | mirrors the casamento app's /admin/modules, /admin/roles convention.
+    | All package routes are registered under this URL prefix. Defaults to
+    | 'api/admin' so endpoints look like /api/admin/modules. Override in
+    | the host app's published config to fit a different layout.
     */
-    'route_prefix' => 'admin',
+    'route_prefix' => 'api/admin',
 
     /*
     |--------------------------------------------------------------------------
     | Route middleware
     |--------------------------------------------------------------------------
     |
-    | Middleware stack applied to all package routes. The host app is
-    | expected to provide `admin.auth` (or equivalent) that resolves the
-    | admin user and sets the team context.
+    | Middleware stack applied to all package routes. Default includes the
+    | `api` group (Laravel's stateless API stack: throttle, substitute
+    | bindings) plus `auth:sanctum` and `admin.auth` (host-defined alias
+    | that resolves the admin user and sets the Spatie team context).
     */
-    'middleware' => ['auth:sanctum', 'admin.auth'],
+    'middleware' => ['api', 'auth:sanctum', 'admin.auth'],
 
     /*
     |--------------------------------------------------------------------------

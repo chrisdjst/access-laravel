@@ -6,7 +6,7 @@ import type {
   SyncRoleModulesPayload,
   UpdateModulePayload,
   UpdateRolePayload,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * Minimal HTTP client surface the package needs. Compatible with axios,

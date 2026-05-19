@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { createRbacApi, type HttpClient, type RbacApi } from './api/rbac';
+import { createRbacApi, type HttpClient, type RbacApi } from './api/rbac.js';
 
 const RbacContext = createContext<RbacApi | null>(null);
 

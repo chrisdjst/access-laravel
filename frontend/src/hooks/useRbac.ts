@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import { useRbacApi } from '../provider';
+import { useRbacApi } from '../provider.js';
 import type {
   LanguagePayload,
   SyncRoleModulesPayload,
   UpdateModulePayload,
   UpdateRolePayload,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * Optional callbacks for mutation feedback. The package stays toast-agnostic

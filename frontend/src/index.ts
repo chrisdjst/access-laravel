@@ -1,4 +1,4 @@
-export { VERSION } from './version';
+export { VERSION } from './version.js';
 
 // Types
 export type {
@@ -10,13 +10,13 @@ export type {
   SyncRoleModulesPayload,
   UpdateModulePayload,
   UpdateRolePayload,
-} from './types';
+} from './types/index.js';
 
 // API factory
-export { createRbacApi, type HttpClient, type RbacApi } from './api/rbac';
+export { createRbacApi, type HttpClient, type RbacApi } from './api/rbac.js';
 
 // Provider + hook
-export { RbacProvider, useRbacApi } from './provider';
+export { RbacProvider, useRbacApi } from './provider.js';
 
 // React Query hooks
 export {
@@ -32,4 +32,4 @@ export {
   useUpdateModule,
   useUpdateRole,
   type MutationCallbacks,
-} from './hooks/useRbac';
+} from './hooks/useRbac.js';

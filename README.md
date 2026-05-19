@@ -102,6 +102,20 @@ To use the package's `Role` + `Permission` instead of Spatie's defaults:
 
 `"symlink": true` requires Developer Mode (Settings → Privacy & Security → For developers). Without it, Composer falls back to copying — every change in `../modularize` requires `composer update casamento/rbac` in the host app.
 
+### Docker / Sail note
+
+When the host app runs in a container (Sail, Laravel Octane image, etc.) the `../modularize` path on the host filesystem is **not** automatically visible inside the container. Mount it explicitly in `docker-compose.yml`:
+
+```yaml
+services:
+  app:
+    volumes:
+      - '.:/var/www/html'
+      - '../modularize:/var/www/modularize'  # add this
+```
+
+After mounting, run `composer install` (or `composer update casamento/rbac`) **inside the container** so the named-volume vendor cache picks up the symlink at `/var/www/html/vendor/casamento/rbac -> /var/www/modularize`. Without this the container boots in FATAL state with `Class "Casamento\Rbac\RbacServiceProvider" not found` and supervisord gives up after a few retries.
+
 ## Frontend install
 
 See `frontend/README.md`.

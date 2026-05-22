@@ -70,4 +70,25 @@ return [
     | layer (models will fall back to their canonical column values).
     */
     'translations_enabled' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spatie permission sync
+    |--------------------------------------------------------------------------
+    |
+    | v1.0 still requires spatie/laravel-permission because Role + Permission
+    | Eloquent models extend Spatie's. This flag controls whether the
+    | SyncRoleModules use-case actively replicates grants/revokes into
+    | Spatie's `role_has_permissions` table.
+    |
+    |   null  -> auto (sync enabled if Spatie classes are available)
+    |   true  -> force sync on
+    |   false -> force sync off (use NullExternalPermissionGateway)
+    |
+    | Fully decoupling Role from SpatieRole is planned for v2.0; until then
+    | uninstalling Spatie is not supported.
+    */
+    'spatie' => [
+        'enabled' => null,
+    ],
 ];

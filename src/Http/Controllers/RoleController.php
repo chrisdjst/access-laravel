@@ -1,15 +1,15 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-namespace Casamento\Rbac\Http\Controllers;
+namespace Modularize\Access\Laravel\Http\Controllers;
 
-use Casamento\Rbac\Http\Requests\SyncRoleModulesRequest;
-use Casamento\Rbac\Http\Requests\UpdateRoleRequest;
-use Casamento\Rbac\Http\Resources\RoleResource;
-use Casamento\Rbac\Models\ModulePermission;
-use Casamento\Rbac\Models\Role;
-use Casamento\Rbac\Models\RoleModulePermission;
+use Modularize\Access\Laravel\Http\Requests\SyncRoleModulesRequest;
+use Modularize\Access\Laravel\Http\Requests\UpdateRoleRequest;
+use Modularize\Access\Laravel\Http\Resources\RoleResource;
+use Modularize\Access\Laravel\Models\ModulePermission;
+use Modularize\Access\Laravel\Models\Role;
+use Modularize\Access\Laravel\Models\RoleModulePermission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
@@ -90,7 +90,7 @@ class RoleController extends Controller
                 );
             }
 
-            // Remove modules that were not in the payload — fires observer
+            // Remove modules that were not in the payload â€” fires observer
             // per row to revoke the matching Spatie permissions.
             RoleModulePermission::where('role_id', $role->id)
                 ->whereNotIn('module_id', $keptModuleIds)

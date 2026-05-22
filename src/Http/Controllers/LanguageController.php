@@ -1,13 +1,13 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-namespace Casamento\Rbac\Http\Controllers;
+namespace Modularize\Access\Laravel\Http\Controllers;
 
-use Casamento\Rbac\Http\Requests\StoreLanguageRequest;
-use Casamento\Rbac\Http\Requests\UpdateLanguageRequest;
-use Casamento\Rbac\Http\Resources\LanguageResource;
-use Casamento\Rbac\Models\Language;
+use Modularize\Access\Laravel\Http\Requests\StoreLanguageRequest;
+use Modularize\Access\Laravel\Http\Requests\UpdateLanguageRequest;
+use Modularize\Access\Laravel\Http\Resources\LanguageResource;
+use Modularize\Access\Laravel\Models\Language;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -59,7 +59,7 @@ class LanguageController extends Controller
     public function destroy(Request $request, Language $language): JsonResponse
     {
         abort_unless($request->user()->can('admin.languages.manage'), 403);
-        abort_if($language->is_default, 422, 'Não é possível remover o idioma padrão.');
+        abort_if($language->is_default, 422, 'NÃ£o Ã© possÃ­vel remover o idioma padrÃ£o.');
 
         $language->delete();
 

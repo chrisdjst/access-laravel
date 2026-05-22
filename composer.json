@@ -1,9 +1,28 @@
 {
-    "name": "casamento/rbac",
-    "description": "Module + role + permission management package — extracted from casamento, reusable across Laravel projects.",
+    "name": "modularize/access-laravel",
+    "description": "Laravel bridge for modularize/access-core: Eloquent repositories, HTTP controllers, migrations, and optional Spatie permissions adapter.",
     "type": "library",
-    "version": "0.1.0",
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "rbac",
+        "permissions",
+        "roles",
+        "modules",
+        "access-control",
+        "i18n",
+        "spatie"
+    ],
+    "authors": [
+        {
+            "name": "Christopher",
+            "email": "christophertheilacher@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/chrisdjst/access-laravel/issues",
+        "source": "https://github.com/chrisdjst/access-laravel"
+    },
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.0|^12.0",
@@ -15,19 +34,18 @@
     },
     "autoload": {
         "psr-4": {
-            "Casamento\\Rbac\\": "src/",
-            "Casamento\\Rbac\\Database\\Factories\\": "database/factories/"
+            "Modularize\\Access\\Laravel\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Casamento\\Rbac\\Tests\\": "tests/"
+            "Modularize\\Access\\Laravel\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Casamento\\Rbac\\RbacServiceProvider"
+                "Modularize\\Access\\Laravel\\AccessServiceProvider"
             ]
         }
     },

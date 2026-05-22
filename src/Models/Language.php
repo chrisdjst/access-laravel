@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-namespace Casamento\Rbac\Models;
+namespace Modularize\Access\Laravel\Models;
 
-use Casamento\Rbac\Concerns\HasUuid;
+use Modularize\Access\Laravel\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
 class Language extends Model

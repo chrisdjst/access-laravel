@@ -1,72 +1,62 @@
-# casamento/rbac
+# modularize/access-laravel
 
-Modules + sub-modules + roles + permissions management package for Laravel apps. Extracted from the casamento platform; reusable across projects that need a Spatie-permission-backed admin RBAC layer with a translatable module tree.
+Laravel bridge for [`modularize/access-core`](https://github.com/chrisdjst/access-core): module + role + permission management with i18n translations, backed by Eloquent and (optionally) Spatie permissions.
 
-## What's inside
+> **Status: WIP, refactoring towards v1.0.**
+>
+> This package was previously published as `casamento/rbac`. It is currently being rewritten with a hexagonal architecture, splitting the framework-agnostic core into `modularize/access-core`. The current `main` branch carries the renamed namespaces; the deeper architectural refactor is rolling out in PRs 1-6 (see [CHANGELOG.md](./CHANGELOG.md)). The first stable Packagist release will be `v1.0.0`.
 
-**Backend (`casamento/rbac` Composer package)**:
+## What's inside (current state)
+
 - Models: `Module`, `ModulePermission`, `ModulePrice`, `RoleModulePermission`, `Role` (extends Spatie), `Permission` (extends Spatie), `Language`, `Translation`.
 - Controllers + routes: `GET/POST/PUT/DELETE /admin/modules`, `/admin/roles`, `/admin/languages`, plus `PUT /admin/roles/{id}/modules` for the permission matrix.
 - FormRequests, JsonResources, observer that mirrors the custom `role_module_permission` pivot into Spatie's `role_has_permissions`.
-- 9 migrations covering Spatie tables + modules/permissions/languages/translations. Table names unchanged.
-- Concerns: `HasUuid`, `HasTranslations`.
+- 9 migrations covering Spatie tables + modules/permissions/languages/translations.
+- Concerns: `HasUuid`, `HasTranslations` (these will be replaced by domain value objects + services in PR 1).
 
-**Frontend (`@casamento/admin-rbac` NPM package)**:
-- TypeScript types: `AdminModule`, `AdminRole`, `AdminLanguage`, etc.
-- `createRbacApi(httpClient)` factory — takes anything with the right shape (axios fits).
-- `<RbacProvider apiClient={...}>` + `useRbacApi()` hook.
-- React Query hooks: `useAdminModules`, `useUpdateModule`, `useAdminRoles`, `useSyncRoleModules`, `useAdminLanguages`, language CRUD. Mutations accept optional callbacks for toast wiring.
+A separate frontend NPM package (`@casamento/admin-rbac`, will be renamed) lives under `frontend/` — see `frontend/README.md`.
 
 ## Layout
 
 ```
 .
-├── composer.json           # PHP package manifest (version 0.1.0)
-├── config/rbac.php         # publishable config
-├── database/migrations/    # 9 migrations
-├── routes/api.php          # module + role + language routes
+├── composer.json
+├── config/access.php           # publishable config
+├── database/migrations/        # 9 migrations
+├── routes/api.php              # module + role + language routes
 ├── src/
-│   ├── Concerns/           # HasUuid, HasTranslations traits
-│   ├── Contracts/          # Tenant marker interface
+│   ├── Concerns/               # HasUuid, HasTranslations (to be extracted to access-core)
+│   ├── Contracts/              # Tenant marker interface
 │   ├── Http/{Controllers,Requests,Resources}/
 │   ├── Models/
 │   ├── Observers/
-│   └── RbacServiceProvider.php
+│   └── AccessServiceProvider.php
 ├── tests/
-└── frontend/               # NPM package @casamento/admin-rbac
-    ├── package.json
-    ├── src/
-    │   ├── api/rbac.ts     # createRbacApi(httpClient)
-    │   ├── hooks/useRbac.ts
-    │   ├── provider.tsx
-    │   ├── types/index.ts
-    │   ├── version.ts
-    │   └── index.ts
-    └── README.md
+└── frontend/                   # NPM package (separate concern)
 ```
 
 ## Backend install (host Laravel app)
 
-In the host's `composer.json`:
+While `v1.0.0` is not yet on Packagist, install via path repository in the host:
 
 ```json
 "require": {
-    "casamento/rbac": "^0.1.0"
+    "modularize/access-laravel": "^1.0@dev"
 },
 "repositories": [
-    { "type": "path", "url": "../modularize", "options": { "symlink": true } }
+    { "type": "path", "url": "../access-laravel", "options": { "symlink": true } }
 ]
 ```
 
 Then:
 
 ```bash
-composer require casamento/rbac:^0.1.0
-php artisan vendor:publish --tag=rbac-config
+composer require modularize/access-laravel:^1.0@dev
+php artisan vendor:publish --tag=access-config
 php artisan migrate
 ```
 
-Edit `config/rbac.php` and point `tenant_model` at your tenant class (e.g. `App\Models\Organization::class`) or leave `null` for single-tenant setups. Roles call `->tenant()` to resolve their owner.
+Edit `config/access.php` and point `tenant_model` at your tenant class (e.g. `App\Models\Organization::class`) or leave `null` for single-tenant setups. Roles call `->tenant()` to resolve their owner.
 
 ### config/auth.php
 
@@ -85,7 +75,9 @@ The package's default `guard_name` is `admin`. Ensure your host's `config/auth.p
 
 The package's routes use `auth:sanctum` + `admin.auth`. The host app must register the `admin.auth` alias (typically in `bootstrap/app.php`) pointing at a middleware that:
 1. Confirms the authenticated user is an admin.
-2. Sets the Spatie team context: `setPermissionsTeamId(config('rbac.admin_team_id'))`.
+2. Sets the Spatie team context: `setPermissionsTeamId(config('access.admin_team_id'))`.
+
+> Note: in v1.0 the default middleware stack will be lighter (`['api', 'auth:sanctum']`); the `admin.auth` alias will become opt-in.
 
 ### config/permission.php
 
@@ -93,36 +85,32 @@ To use the package's `Role` + `Permission` instead of Spatie's defaults:
 
 ```php
 'models' => [
-    'permission' => \Casamento\Rbac\Models\Permission::class,
-    'role' => \Casamento\Rbac\Models\Role::class,
+    'permission' => \Modularize\Access\Laravel\Models\Permission::class,
+    'role' => \Modularize\Access\Laravel\Models\Role::class,
 ],
 ```
 
 ### Windows note
 
-`"symlink": true` requires Developer Mode (Settings → Privacy & Security → For developers). Without it, Composer falls back to copying — every change in `../modularize` requires `composer update casamento/rbac` in the host app.
+`"symlink": true` requires Developer Mode. Without it, Composer falls back to copying.
 
 ### Docker / Sail note
 
-When the host app runs in a container (Sail, Laravel Octane image, etc.) the `../modularize` path on the host filesystem is **not** automatically visible inside the container. Mount it explicitly in `docker-compose.yml`:
+When the host runs in a container, mount the package path explicitly in `docker-compose.yml`:
 
 ```yaml
 services:
   app:
     volumes:
       - '.:/var/www/html'
-      - '../modularize:/var/www/modularize'  # add this
+      - '../access-laravel:/var/www/access-laravel'
 ```
 
-After mounting, run `composer install` (or `composer update casamento/rbac`) **inside the container** so the named-volume vendor cache picks up the symlink at `/var/www/html/vendor/casamento/rbac -> /var/www/modularize`. Without this the container boots in FATAL state with `Class "Casamento\Rbac\RbacServiceProvider" not found` and supervisord gives up after a few retries.
-
-## Frontend install
-
-See `frontend/README.md`.
+Then run `composer install` **inside the container**.
 
 ## Routes registered
 
-All under `config('rbac.route_prefix')` (default `api/admin`):
+All under `config('access.route_prefix')` (default `api/admin`):
 
 | Method | URL | Action |
 |---|---|---|
@@ -131,7 +119,7 @@ All under `config('rbac.route_prefix')` (default `api/admin`):
 | GET | /modules/{id} | Show one |
 | PUT | /modules/{id} | Update (incl. translations) |
 | DELETE | /modules/{id} | Soft delete |
-| GET | /roles | List roles (filter by guard, organization_id) |
+| GET | /roles | List roles |
 | GET | /roles/{role} | Show role + flags matrix |
 | PUT | /roles/{role} | Update display_name + translations |
 | PUT | /roles/{role}/modules | Sync the role's full permission matrix |
@@ -144,8 +132,7 @@ All under `config('rbac.route_prefix')` (default `api/admin`):
 
 ## Out of scope
 
-The package intentionally does NOT ship:
 - AdminUser auth (the `admin.auth` middleware is host-defined).
-- Admin shell UI pages — the package owns types + API + hooks; hosts own JSX/styling. Page extraction would couple the lib to a specific design system.
-- Tenant model — pluggable via `config('rbac.tenant_model')`.
-- Spatie permission package itself — declared as `require` so host already has it; if the host shares a different version, align there.
+- Admin shell UI pages — the package owns types + API + hooks; hosts own JSX/styling.
+- Tenant model — pluggable via `config('access.tenant_model')`.
+- Spatie permission package — currently a hard dependency; will become opt-in in PR 5.

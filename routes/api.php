@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-use Casamento\Rbac\Http\Controllers\LanguageController;
-use Casamento\Rbac\Http\Controllers\ModuleController;
-use Casamento\Rbac\Http\Controllers\RoleController;
+use Modularize\Access\Laravel\Http\Controllers\LanguageController;
+use Modularize\Access\Laravel\Http\Controllers\ModuleController;
+use Modularize\Access\Laravel\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Route;
 | RBAC package routes
 |--------------------------------------------------------------------------
 |
-| Loaded by RbacServiceProvider inside a Route::prefix(...)->middleware(...)
-| group reading config('rbac.route_prefix') and config('rbac.middleware').
+| Loaded by AccessServiceProvider inside a Route::prefix(...)->middleware(...)
+| group reading config('access.route_prefix') and config('access.middleware').
 */
 
 Route::apiResource('modules', ModuleController::class);

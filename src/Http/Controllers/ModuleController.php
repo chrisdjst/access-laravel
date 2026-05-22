@@ -1,13 +1,13 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-namespace Casamento\Rbac\Http\Controllers;
+namespace Modularize\Access\Laravel\Http\Controllers;
 
-use Casamento\Rbac\Http\Requests\StoreModuleRequest;
-use Casamento\Rbac\Http\Requests\UpdateModuleRequest;
-use Casamento\Rbac\Http\Resources\ModuleResource;
-use Casamento\Rbac\Models\Module;
+use Modularize\Access\Laravel\Http\Requests\StoreModuleRequest;
+use Modularize\Access\Laravel\Http\Requests\UpdateModuleRequest;
+use Modularize\Access\Laravel\Http\Resources\ModuleResource;
+use Modularize\Access\Laravel\Models\Module;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

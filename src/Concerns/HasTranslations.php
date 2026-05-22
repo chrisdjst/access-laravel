@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-namespace Casamento\Rbac\Concerns;
+namespace Modularize\Access\Laravel\Concerns;
 
-use Casamento\Rbac\Models\Language;
-use Casamento\Rbac\Models\Translation;
+use Modularize\Access\Laravel\Models\Language;
+use Modularize\Access\Laravel\Models\Translation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\App;

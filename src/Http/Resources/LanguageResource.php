@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-namespace Casamento\Rbac\Http\Resources;
+namespace Modularize\Access\Laravel\Http\Resources;
 
-use Casamento\Rbac\Models\Language;
+use Modularize\Access\Laravel\Models\Language;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**

@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-namespace Casamento\Rbac\Models;
+namespace Modularize\Access\Laravel\Models;
 
-use Casamento\Rbac\Concerns\HasTranslations;
-use Casamento\Rbac\Concerns\HasUuid;
+use Modularize\Access\Laravel\Concerns\HasTranslations;
+use Modularize\Access\Laravel\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
@@ -34,7 +34,7 @@ class Role extends SpatieRole
 
     /**
      * The owning tenant (organization / account / workspace) for this role.
-     * Resolves the model class from `config('rbac.tenant_model')`; throws if
+     * Resolves the model class from `config('access.tenant_model')`; throws if
      * the host app has not configured it. Use `tenantOrNull()` for graceful
      * single-tenant setups.
      *
@@ -42,15 +42,15 @@ class Role extends SpatieRole
      */
     public function tenant(): BelongsTo
     {
-        $model = config('rbac.tenant_model');
+        $model = config('access.tenant_model');
         if (! $model || ! is_string($model)) {
             throw new LogicException(
-                'rbac.tenant_model is not configured. Set it in config/rbac.php to the '
+                'access.tenant_model is not configured. Set it in config/access.php to the '
                 .'fully-qualified class name of your tenant model (e.g. App\\Models\\Organization::class).'
             );
         }
 
-        return $this->belongsTo($model, config('rbac.tenant_column', 'organization_id'));
+        return $this->belongsTo($model, config('access.tenant_column', 'organization_id'));
     }
 
     /**

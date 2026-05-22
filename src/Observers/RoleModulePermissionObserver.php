@@ -1,12 +1,12 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
-namespace Casamento\Rbac\Observers;
+namespace Modularize\Access\Laravel\Observers;
 
-use Casamento\Rbac\Models\ModulePermission;
-use Casamento\Rbac\Models\Permission;
-use Casamento\Rbac\Models\RoleModulePermission;
+use Modularize\Access\Laravel\Models\ModulePermission;
+use Modularize\Access\Laravel\Models\Permission;
+use Modularize\Access\Laravel\Models\RoleModulePermission;
 
 class RoleModulePermissionObserver
 {

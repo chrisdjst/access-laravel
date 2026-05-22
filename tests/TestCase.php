@@ -1,0 +1,166 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modularize\Access\Laravel\Tests;
+
+use Illuminate\Database\Schema\Blueprint;
+use Modularize\Access\Laravel\AccessServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\Permission\PermissionServiceProvider;
+
+abstract class TestCase extends Orchestra
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setupSpatieMinimalTables();
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            PermissionServiceProvider::class,
+            AccessServiceProvider::class,
+        ];
+    }
+
+    protected function defineEnvironment($app): void
+    {
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('database.connections.testing', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+        ]);
+        $app['config']->set('access.guard_name', 'web');
+        $app['config']->set('app.fallback_locale', 'en');
+        $app['config']->set('permission.table_names', [
+            'roles' => 'roles',
+            'permissions' => 'permissions',
+            'model_has_permissions' => 'model_has_permissions',
+            'model_has_roles' => 'model_has_roles',
+            'role_has_permissions' => 'role_has_permissions',
+        ]);
+        $app['config']->set('permission.column_names', [
+            'role_pivot_key' => 'role_id',
+            'permission_pivot_key' => 'permission_id',
+            'model_morph_key' => 'model_id',
+            'team_foreign_key' => 'organization_id',
+        ]);
+        $app['config']->set('permission.teams', false);
+    }
+
+    /**
+     * Bring up the bare schema our domain repositories need on a
+     * fresh SQLite database. We hand-roll it rather than running the
+     * 9 package migrations so the test suite stays fast and isolates
+     * the schema changes that matter for integration tests.
+     */
+    protected function setupSpatieMinimalTables(): void
+    {
+        $schema = $this->app['db']->connection()->getSchemaBuilder();
+
+        if (! $schema->hasTable('roles')) {
+            $schema->create('roles', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->string('name');
+                $table->string('display_name')->nullable();
+                $table->string('guard_name');
+                $table->uuid('organization_id')->nullable();
+                $table->integer('level')->default(0);
+                $table->boolean('is_system')->default(false);
+                $table->timestamps();
+                $table->unique(['name', 'guard_name', 'organization_id']);
+            });
+        }
+
+        if (! $schema->hasTable('permissions')) {
+            $schema->create('permissions', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->string('name');
+                $table->string('guard_name');
+                $table->string('module')->nullable();
+                $table->timestamps();
+                $table->unique(['name', 'guard_name']);
+            });
+        }
+
+        if (! $schema->hasTable('role_has_permissions')) {
+            $schema->create('role_has_permissions', function (Blueprint $table): void {
+                $table->uuid('permission_id');
+                $table->uuid('role_id');
+                $table->primary(['permission_id', 'role_id']);
+            });
+        }
+
+        if (! $schema->hasTable('modules')) {
+            $schema->create('modules', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->string('slug')->unique();
+                $table->string('name');
+                $table->string('redirect')->nullable();
+                $table->string('icon')->nullable();
+                $table->uuid('root_module_id')->nullable();
+                $table->integer('sort_order')->default(0);
+                $table->boolean('is_active')->default(true);
+                $table->uuid('created_by')->nullable();
+                $table->uuid('updated_by')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
+
+        if (! $schema->hasTable('module_permissions')) {
+            $schema->create('module_permissions', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->boolean('is_listing_allowed')->default(false);
+                $table->boolean('is_reading_allowed')->default(false);
+                $table->boolean('is_writing_allowed')->default(false);
+                $table->boolean('is_editing_allowed')->default(false);
+                $table->boolean('is_delete_allowed')->default(false);
+                $table->boolean('is_active')->default(true);
+                $table->uuid('created_by')->nullable();
+                $table->uuid('updated_by')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if (! $schema->hasTable('role_module_permission')) {
+            $schema->create('role_module_permission', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->uuid('role_id');
+                $table->uuid('module_id');
+                $table->uuid('module_permission_id');
+                $table->uuid('created_by')->nullable();
+                $table->uuid('updated_by')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if (! $schema->hasTable('languages')) {
+            $schema->create('languages', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->string('code')->unique();
+                $table->string('name');
+                $table->boolean('is_default')->default(false);
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+        }
+
+        if (! $schema->hasTable('translations')) {
+            $schema->create('translations', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->string('translatable_type');
+                $table->uuid('translatable_id');
+                $table->uuid('language_id');
+                $table->string('field');
+                $table->text('value');
+                $table->timestamps();
+                $table->unique(['translatable_type', 'translatable_id', 'language_id', 'field'], 'translations_unique');
+            });
+        }
+    }
+}

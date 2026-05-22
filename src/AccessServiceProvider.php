@@ -6,11 +6,17 @@ namespace Modularize\Access\Laravel;
 
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
+use Illuminate\Foundation\Exceptions\Handler as FoundationHandler;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Modularize\Access\Exceptions\AuthorizationFailed;
+use Modularize\Access\Exceptions\InvalidInput;
+use Modularize\Access\Exceptions\NotFound;
 use Modularize\Access\Application\Ports\Authorizer;
 use Modularize\Access\Application\Ports\DomainEventDispatcher;
 use Modularize\Access\Application\Ports\ExternalPermissionGateway;
@@ -40,8 +46,6 @@ use Modularize\Access\Laravel\Eloquent\Repositories\EloquentRoleRepository;
 use Modularize\Access\Laravel\Eloquent\Repositories\EloquentTranslationRepository;
 use Modularize\Access\Laravel\Events\LaravelEventDispatcher;
 use Modularize\Access\Laravel\Localization\LaravelLocaleResolver;
-use Modularize\Access\Laravel\Models\RoleModulePermission;
-use Modularize\Access\Laravel\Observers\RoleModulePermissionObserver;
 use Modularize\Access\Laravel\Persistence\LaravelUnitOfWork;
 use Modularize\Access\Laravel\Persistence\SystemClock;
 use Modularize\Access\Laravel\Persistence\UuidV4IdGenerator;
@@ -66,12 +70,34 @@ class AccessServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->registerRoutes();
+        $this->registerExceptionRenderers();
+    }
 
-        // Legacy compatibility: the observer-driven Spatie sync stays
-        // active until PR 4 swaps the controllers to use-cases. From
-        // PR 5 onwards, the observer is removed and Spatie sync runs
-        // via a domain-event listener.
-        RoleModulePermission::observe(RoleModulePermissionObserver::class);
+    /**
+     * Wire each domain exception to a meaningful HTTP status code.
+     * The host can override these renderers in its own Exception
+     * Handler if it needs a different shape, but the defaults match
+     * the legacy v0.1.0 contract (422 / 404 / 403).
+     */
+    protected function registerExceptionRenderers(): void
+    {
+        $handler = $this->app->make(ExceptionHandler::class);
+        if (! $handler instanceof FoundationHandler) {
+            return; // host overrides the handler — let them wire it.
+        }
+
+        $handler->renderable(static function (InvalidInput $e): JsonResponse {
+            return new JsonResponse([
+                'message' => $e->getMessage(),
+                'errors' => [$e->field => [$e->getMessage()]],
+            ], 422);
+        });
+        $handler->renderable(static function (NotFound $e): JsonResponse {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        });
+        $handler->renderable(static function (AuthorizationFailed $e): JsonResponse {
+            return new JsonResponse(['message' => $e->getMessage()], 403);
+        });
     }
 
     protected function registerInfraAdapters(): void

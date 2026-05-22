@@ -4,77 +4,81 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Controller;
+use Modularize\Access\Application\Language\CreateLanguage\CreateLanguage;
+use Modularize\Access\Application\Language\CreateLanguage\CreateLanguageInput;
+use Modularize\Access\Application\Language\DeleteLanguage\DeleteLanguage;
+use Modularize\Access\Application\Language\ListLanguages\ListLanguages;
+use Modularize\Access\Application\Language\SetDefaultLanguage\SetDefaultLanguage;
+use Modularize\Access\Application\Language\ShowLanguage\ShowLanguage;
+use Modularize\Access\Application\Language\UpdateLanguage\UpdateLanguage;
+use Modularize\Access\Application\Language\UpdateLanguage\UpdateLanguageInput;
 use Modularize\Access\Laravel\Http\Requests\StoreLanguageRequest;
 use Modularize\Access\Laravel\Http\Requests\UpdateLanguageRequest;
 use Modularize\Access\Laravel\Http\Resources\LanguageResource;
-use Modularize\Access\Laravel\Models\Language;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
 
+/**
+ * Thin HTTP controller — delegates to access-core language use-cases.
+ */
 class LanguageController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
-    {
-        abort_unless($request->user()->can('admin.languages.view'), 403);
+    public function __construct(
+        private readonly ListLanguages $listLanguages,
+        private readonly ShowLanguage $showLanguage,
+        private readonly CreateLanguage $createLanguage,
+        private readonly UpdateLanguage $updateLanguageUseCase,
+        private readonly DeleteLanguage $deleteLanguageUseCase,
+        private readonly SetDefaultLanguage $setDefaultLanguageUseCase,
+    ) {
+    }
 
-        return LanguageResource::collection(Language::orderBy('name')->get());
+    public function index(): AnonymousResourceCollection
+    {
+        return LanguageResource::collection($this->listLanguages->execute());
+    }
+
+    public function show(string $language): LanguageResource
+    {
+        return new LanguageResource($this->showLanguage->execute($language));
     }
 
     public function store(StoreLanguageRequest $request): JsonResponse
     {
         $data = $request->validated();
-        if (! empty($data['is_default'])) {
-            Language::where('is_default', true)->update(['is_default' => false]);
-        }
-        $language = Language::create($data);
+        $output = $this->createLanguage->execute(new CreateLanguageInput(
+            code: (string) $data['code'],
+            name: (string) $data['name'],
+            isDefault: (bool) ($data['is_default'] ?? false),
+            isActive: (bool) ($data['is_active'] ?? true),
+        ));
 
-        return (new LanguageResource($language))->response()->setStatusCode(201);
+        return (new LanguageResource($output))->response()->setStatusCode(201);
     }
 
-    public function show(Request $request, Language $language): LanguageResource
-    {
-        abort_unless($request->user()->can('admin.languages.view'), 403);
-
-        return new LanguageResource($language);
-    }
-
-    public function update(UpdateLanguageRequest $request, Language $language): LanguageResource
+    public function update(UpdateLanguageRequest $request, string $language): LanguageResource
     {
         $data = $request->validated();
-        DB::transaction(function () use ($data, $language): void {
-            if (! empty($data['is_default'])) {
-                Language::where('is_default', true)
-                    ->where('id', '!=', $language->id)
-                    ->update(['is_default' => false]);
-            }
-            $language->update($data);
-        });
+        $output = $this->updateLanguageUseCase->execute(new UpdateLanguageInput(
+            id: $language,
+            code: (string) ($data['code'] ?? ''),
+            name: (string) ($data['name'] ?? ''),
+            isActive: (bool) ($data['is_active'] ?? true),
+        ));
 
-        return new LanguageResource($language);
+        return new LanguageResource($output);
     }
 
-    public function destroy(Request $request, Language $language): JsonResponse
+    public function destroy(string $language): JsonResponse
     {
-        abort_unless($request->user()->can('admin.languages.manage'), 403);
-        abort_if($language->is_default, 422, 'NÃ£o Ã© possÃ­vel remover o idioma padrÃ£o.');
-
-        $language->delete();
+        $this->deleteLanguageUseCase->execute($language);
 
         return response()->json(null, 204);
     }
 
-    public function setDefault(Request $request, Language $language): LanguageResource
+    public function setDefault(string $language): LanguageResource
     {
-        abort_unless($request->user()->can('admin.languages.manage'), 403);
-
-        DB::transaction(function () use ($language): void {
-            Language::where('is_default', true)->update(['is_default' => false]);
-            $language->update(['is_default' => true]);
-        });
-
-        return new LanguageResource($language);
+        return new LanguageResource($this->setDefaultLanguageUseCase->execute($language));
     }
 }

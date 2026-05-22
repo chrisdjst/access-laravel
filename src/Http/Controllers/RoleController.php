@@ -4,101 +4,136 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Http\Controllers;
 
-use Modularize\Access\Laravel\Http\Requests\SyncRoleModulesRequest;
-use Modularize\Access\Laravel\Http\Requests\UpdateRoleRequest;
-use Modularize\Access\Laravel\Http\Resources\RoleResource;
-use Modularize\Access\Laravel\Models\ModulePermission;
-use Modularize\Access\Laravel\Models\Role;
-use Modularize\Access\Laravel\Models\RoleModulePermission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
+use Modularize\Access\Application\Ports\LanguageRepository;
+use Modularize\Access\Application\Ports\RoleModulePermissionRepository;
+use Modularize\Access\Application\Ports\TranslationRepository;
+use Modularize\Access\Application\Role\ListRoles\ListRoles;
+use Modularize\Access\Application\Role\RoleOutput;
+use Modularize\Access\Application\Role\ShowRole\ShowRole;
+use Modularize\Access\Application\Role\SyncRoleModules\SyncRoleModules;
+use Modularize\Access\Application\Role\SyncRoleModules\SyncRoleModulesInput;
+use Modularize\Access\Application\Role\UpdateRole\UpdateRole;
+use Modularize\Access\Application\Role\UpdateRole\UpdateRoleInput;
+use Modularize\Access\Domain\Shared\Uuid;
+use Modularize\Access\Laravel\Http\Requests\SyncRoleModulesRequest;
+use Modularize\Access\Laravel\Http\Requests\UpdateRoleRequest;
+use Modularize\Access\Laravel\Http\Resources\RoleResource;
+use Modularize\Access\Laravel\Translations\TranslationApplier;
 
+/**
+ * Thin HTTP controller for roles. Delegates to access-core use-cases
+ * and enriches the response with translations + role-module matrix
+ * for backwards compatibility with the v0.1.0 API contract.
+ */
 class RoleController extends Controller
 {
+    public function __construct(
+        private readonly ListRoles $listRoles,
+        private readonly ShowRole $showRole,
+        private readonly UpdateRole $updateRoleUseCase,
+        private readonly SyncRoleModules $syncRoleModules,
+        private readonly TranslationApplier $translations,
+        private readonly TranslationRepository $translationRepository,
+        private readonly LanguageRepository $languageRepository,
+        private readonly RoleModulePermissionRepository $bindings,
+    ) {
+    }
+
     public function index(Request $request): AnonymousResourceCollection
     {
-        abort_unless($request->user()->can('admin.roles.view'), 403);
+        $outputs = $this->listRoles->execute(
+            $request->query('guard'),
+            $request->query('organization_id'),
+        );
+        $resources = [];
+        foreach ($outputs as $out) {
+            $resources[] = $this->enrich($out);
+        }
 
-        $roles = Role::query()
-            ->when($request->query('guard'), fn ($q, $g) => $q->where('guard_name', $g))
-            ->when($request->query('organization_id'), fn ($q, $o) => $q->where('organization_id', $o))
-            ->orderByDesc('level')
-            ->orderBy('name')
-            ->with(['rolePermissions.permission', 'translations.language'])
-            ->get();
-
-        return RoleResource::collection($roles);
+        return RoleResource::collection($resources);
     }
 
-    public function show(Request $request, Role $role): RoleResource
+    public function show(string $role): RoleResource
     {
-        abort_unless($request->user()->can('admin.roles.view'), 403);
-
-        return new RoleResource($role->load(['rolePermissions.permission', 'translations.language']));
+        return new RoleResource($this->enrich($this->showRole->execute($role)));
     }
 
-    public function update(UpdateRoleRequest $request, Role $role): RoleResource
+    public function update(UpdateRoleRequest $request, string $role): RoleResource
     {
         $data = $request->validated();
-        $translations = $data['translations'] ?? null;
+        $payloadTranslations = $data['translations'] ?? null;
         unset($data['translations']);
 
-        if (array_key_exists('display_name', $data)) {
-            $role->update(['display_name' => $data['display_name']]);
+        $output = $this->updateRoleUseCase->execute(new UpdateRoleInput(
+            id: $role,
+            displayName: $data['display_name'] ?? null,
+        ));
+
+        if (is_array($payloadTranslations)) {
+            $this->translations->apply('role', new Uuid($output->id), $payloadTranslations);
         }
 
-        if ($translations !== null) {
-            $role->setTranslationsBulk($translations);
-        }
+        return new RoleResource($this->enrich($output));
+    }
 
-        return new RoleResource($role->load(['rolePermissions.permission', 'translations.language']));
+    public function syncModules(SyncRoleModulesRequest $request, string $role): RoleResource
+    {
+        $data = $request->validated();
+        /** @var list<array<string, mixed>> $modules */
+        $modules = $data['modules'] ?? [];
+
+        $output = $this->syncRoleModules->execute(new SyncRoleModulesInput(
+            roleId: $role,
+            modules: $modules,
+        ));
+
+        return new RoleResource($this->enrich($output));
     }
 
     /**
-     * Sync the complete set of module permissions for this role.
-     * Payload: { modules: [{ module_id, is_reading_allowed, ... }, ...] }.
+     * @return array{output: RoleOutput, translations: array<string, array<string, string>>, modules: list<array<string, mixed>>}
      */
-    public function syncModules(SyncRoleModulesRequest $request, Role $role): RoleResource
+    private function enrich(RoleOutput $output): array
     {
-        $data = $request->validated();
-        $userId = $request->user()?->id;
-
-        DB::transaction(function () use ($data, $role, $userId): void {
-            $keptModuleIds = [];
-
-            foreach ($data['modules'] as $m) {
-                $keptModuleIds[] = $m['module_id'];
-
-                $permission = ModulePermission::create([
-                    'is_reading_allowed' => $m['is_reading_allowed'] ?? false,
-                    'is_writing_allowed' => $m['is_writing_allowed'] ?? false,
-                    'is_editing_allowed' => $m['is_editing_allowed'] ?? false,
-                    'is_delete_allowed' => $m['is_delete_allowed'] ?? false,
-                    'is_listing_allowed' => $m['is_listing_allowed'] ?? false,
-                    'is_active' => true,
-                    'created_by' => $userId,
-                ]);
-
-                RoleModulePermission::updateOrCreate(
-                    ['role_id' => $role->id, 'module_id' => $m['module_id']],
-                    [
-                        'module_permission_id' => $permission->id,
-                        'updated_by' => $userId,
-                    ],
-                );
+        $roleId = new Uuid($output->id);
+        $translations = $this->translationRepository->forSubject('role', $roleId);
+        $languagesById = [];
+        foreach ($this->languageRepository->all() as $lang) {
+            $languagesById[$lang->id->value] = $lang->code()->value;
+        }
+        $grouped = [];
+        foreach ($translations as $t) {
+            $locale = $languagesById[$t->languageId->value] ?? null;
+            if ($locale === null) {
+                continue;
             }
+            $grouped[$t->field][$locale] = $t->value();
+        }
 
-            // Remove modules that were not in the payload â€” fires observer
-            // per row to revoke the matching Spatie permissions.
-            RoleModulePermission::where('role_id', $role->id)
-                ->whereNotIn('module_id', $keptModuleIds)
-                ->get()
-                ->each
-                ->delete();
-        });
+        $modules = [];
+        foreach ($this->bindings->forRole($roleId) as $row) {
+            $binding = $row['binding'];
+            $perm = $row['permission'];
+            $modules[] = [
+                'module_id' => $binding->moduleId->value,
+                'module_permission_id' => $perm->id->value,
+                'flags' => [
+                    'is_listing_allowed' => $perm->isListingAllowed(),
+                    'is_reading_allowed' => $perm->isReadingAllowed(),
+                    'is_writing_allowed' => $perm->isWritingAllowed(),
+                    'is_editing_allowed' => $perm->isEditingAllowed(),
+                    'is_delete_allowed' => $perm->isDeleteAllowed(),
+                ],
+            ];
+        }
 
-        return new RoleResource($role->load('rolePermissions.permission'));
+        return [
+            'output' => $output,
+            'translations' => $grouped,
+            'modules' => $modules,
+        ];
     }
 }

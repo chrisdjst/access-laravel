@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Models;
 
-use Modularize\Access\Laravel\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RoleModulePermission extends Model
 {
-    use HasUuid;
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $table = 'role_module_permission';
 

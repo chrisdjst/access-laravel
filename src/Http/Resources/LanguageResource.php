@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Http\Resources;
 
-use Modularize\Access\Laravel\Models\Language;
+use DateTimeInterface;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modularize\Access\Application\Language\LanguageOutput;
 
-/**
- * @mixin Language
- */
 class LanguageResource extends JsonResource
 {
     /**
@@ -17,14 +15,17 @@ class LanguageResource extends JsonResource
      */
     public function toArray($request): array
     {
+        /** @var LanguageOutput $output */
+        $output = $this->resource;
+
         return [
-            'id' => $this->id,
-            'code' => $this->code,
-            'name' => $this->name,
-            'is_default' => $this->is_default,
-            'is_active' => $this->is_active,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'id' => $output->id,
+            'code' => $output->code,
+            'name' => $output->name,
+            'is_default' => $output->isDefault,
+            'is_active' => $output->isActive,
+            'created_at' => $output->createdAt->format(DateTimeInterface::ATOM),
+            'updated_at' => $output->updatedAt->format(DateTimeInterface::ATOM),
         ];
     }
 }

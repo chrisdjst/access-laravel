@@ -6,11 +6,17 @@ namespace Modularize\Access\Laravel\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates the structural shape of an incoming Language creation
+ * payload. Authorization lives inside the {@see \Modularize\Access\Application\Language\CreateLanguage\CreateLanguage}
+ * use-case via the {@see \Modularize\Access\Application\Ports\Authorizer}
+ * port — keep this FormRequest free of permission checks.
+ */
 class StoreLanguageRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('admin.languages.manage');
+        return true;
     }
 
     /**

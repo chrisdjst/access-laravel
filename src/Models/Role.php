@@ -4,16 +4,27 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Models;
 
-use Modularize\Access\Laravel\Concerns\HasTranslations;
-use Modularize\Access\Laravel\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 use Spatie\Permission\Models\Role as SpatieRole;
 
+/**
+ * Persistence-only Eloquent model. The business surface (display
+ * name change, tenant scoping invariants) lives in
+ * {@see \Modularize\Access\Domain\Role\Role}; this class is a row
+ * holder that still extends Spatie's Role so Spatie can resolve
+ * roles by name through its own infrastructure.
+ *
+ * PR 5 makes the Spatie dependency opt-in; if and when Spatie is
+ * absent, this class will fall back to extending plain Eloquent
+ * Model. The migration covering that swap is part of PR 5.
+ */
 class Role extends SpatieRole
 {
-    use HasTranslations, HasUuid;
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'name',
@@ -34,9 +45,6 @@ class Role extends SpatieRole
 
     /**
      * The owning tenant (organization / account / workspace) for this role.
-     * Resolves the model class from `config('access.tenant_model')`; throws if
-     * the host app has not configured it. Use `tenantOrNull()` for graceful
-     * single-tenant setups.
      *
      * @return BelongsTo<\Illuminate\Database\Eloquent\Model, $this>
      */

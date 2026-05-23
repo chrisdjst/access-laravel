@@ -4,17 +4,29 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Models;
 
-use Modularize\Access\Laravel\Concerns\HasTranslations;
-use Modularize\Access\Laravel\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * Persistence-only Eloquent model. Business invariants and lifecycle
+ * events live in {@see \Modularize\Access\Domain\Module\Module}; this
+ * class is a thin row holder mapped to and from the domain entity by
+ * {@see \Modularize\Access\Laravel\Eloquent\Mappers\ModuleMapper}.
+ *
+ * Identifier generation lives in the
+ * {@see \Modularize\Access\Domain\Shared\IdGenerator} port — the
+ * Eloquent layer no longer auto-generates UUIDs on `creating`.
+ */
 class Module extends Model
 {
-    use HasTranslations, HasUuid, SoftDeletes;
+    use SoftDeletes;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'slug',

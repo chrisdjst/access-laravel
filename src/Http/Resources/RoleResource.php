@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Http\Resources;
 
-use Modularize\Access\Laravel\Models\Role;
+use DateTimeInterface;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modularize\Access\Application\Role\RoleOutput;
 
 /**
- * @mixin Role
+ * Wraps a {@see RoleOutput} plus the enrichment fetched by the
+ * controller — translations and the per-module permission matrix —
+ * into the payload shape the lib has exposed since v0.1.0.
  */
 class RoleResource extends JsonResource
 {
@@ -17,42 +20,28 @@ class RoleResource extends JsonResource
      */
     public function toArray($request): array
     {
-        $translations = [];
-        if ($this->relationLoaded('translations')) {
-            foreach ($this->translations as $t) {
-                $code = $t->language?->code;
-                if (! $code) {
-                    continue;
-                }
-                $translations[$t->field][$code] = $t->value;
-            }
-        }
+        /**
+         * @var array{
+         *     output: RoleOutput,
+         *     translations: array<string, array<string, string>>,
+         *     modules: list<array<string, mixed>>|null,
+         * } $bundle
+         */
+        $bundle = $this->resource;
+        $output = $bundle['output'];
 
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'display_name' => $this->display_name,
-            'guard_name' => $this->guard_name,
-            'level' => $this->level,
-            'is_system' => $this->is_system,
-            'organization_id' => $this->organization_id,
-            'translations' => $translations,
-            'modules' => $this->whenLoaded(
-                'rolePermissions',
-                fn () => $this->rolePermissions->map(fn ($p) => [
-                    'module_id' => $p->module_id,
-                    'module_permission_id' => $p->module_permission_id,
-                    'flags' => $p->permission ? [
-                        'is_reading_allowed' => (bool) $p->permission->is_reading_allowed,
-                        'is_writing_allowed' => (bool) $p->permission->is_writing_allowed,
-                        'is_editing_allowed' => (bool) $p->permission->is_editing_allowed,
-                        'is_delete_allowed' => (bool) $p->permission->is_delete_allowed,
-                        'is_listing_allowed' => (bool) $p->permission->is_listing_allowed,
-                    ] : null,
-                ])
-            ),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'id' => $output->id,
+            'name' => $output->name,
+            'display_name' => $output->displayName,
+            'guard_name' => $output->guard,
+            'level' => $output->level,
+            'is_system' => $output->isSystem,
+            'organization_id' => $output->tenantId,
+            'translations' => $bundle['translations'],
+            'modules' => $bundle['modules'],
+            'created_at' => $output->createdAt->format(DateTimeInterface::ATOM),
+            'updated_at' => $output->updatedAt->format(DateTimeInterface::ATOM),
         ];
     }
 }

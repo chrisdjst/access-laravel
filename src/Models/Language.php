@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Models;
 
-use Modularize\Access\Laravel\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
 class Language extends Model
 {
-    use HasUuid;
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'code',
@@ -24,10 +25,5 @@ class Language extends Model
             'is_default' => 'boolean',
             'is_active' => 'boolean',
         ];
-    }
-
-    public static function default(): ?self
-    {
-        return self::query()->where('is_default', true)->first();
     }
 }

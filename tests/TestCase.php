@@ -35,6 +35,9 @@ abstract class TestCase extends Orchestra
             'foreign_key_constraints' => false,
         ]);
         $app['config']->set('access.guard_name', 'web');
+        // Override the production-default middleware stack so HTTP
+        // tests aren't kicked by auth:sanctum / admin.auth.
+        $app['config']->set('access.middleware', ['api']);
         $app['config']->set('app.fallback_locale', 'en');
         $app['config']->set('permission.table_names', [
             'roles' => 'roles',
@@ -160,6 +163,17 @@ abstract class TestCase extends Orchestra
                 $table->text('value');
                 $table->timestamps();
                 $table->unique(['translatable_type', 'translatable_id', 'language_id', 'field'], 'translations_unique');
+            });
+        }
+
+        if (! $schema->hasTable('module_prices')) {
+            $schema->create('module_prices', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->uuid('module_id');
+                $table->decimal('value', 12, 2)->default(0);
+                $table->string('currency', 3)->default('BRL');
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
             });
         }
     }

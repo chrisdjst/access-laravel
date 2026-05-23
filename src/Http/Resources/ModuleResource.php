@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Modularize\Access\Laravel\Http\Resources;
 
-use Modularize\Access\Laravel\Models\Module;
+use DateTimeInterface;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modularize\Access\Application\Module\ModuleOutput;
 
 /**
- * @mixin Module
+ * Wraps a {@see ModuleOutput} (plus enrichment fetched by the
+ * controller — translations grouped by field × locale and the active
+ * price row) into the API payload shape the lib has exposed since
+ * v0.1.0. The Resource has no business logic.
  */
 class ModuleResource extends JsonResource
 {
@@ -17,27 +21,23 @@ class ModuleResource extends JsonResource
      */
     public function toArray($request): array
     {
+        /** @var array{output: ModuleOutput, translations: array<string, array<string, string>>, price: array{value: float, currency: string}|null} $bundle */
+        $bundle = $this->resource;
+        $output = $bundle['output'];
+
         return [
-            'id' => $this->id,
-            'slug' => $this->slug,
-            'name' => $this->name,
-            'icon' => $this->icon,
-            'redirect' => $this->redirect,
-            'root_module_id' => $this->root_module_id,
-            'sort_order' => $this->sort_order,
-            'is_active' => $this->is_active,
-            'translations' => $this->whenLoaded(
-                'translations',
-                fn () => $this->translations
-                    ->groupBy('field')
-                    ->map(fn ($rows) => $rows->mapWithKeys(fn ($t) => [$t->language?->code => $t->value]))
-            ),
-            'price' => $this->whenLoaded('price', fn () => $this->price ? [
-                'value' => (float) $this->price->value,
-                'currency' => $this->price->currency,
-            ] : null),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'id' => $output->id,
+            'slug' => $output->slug,
+            'name' => $output->name,
+            'icon' => $output->icon,
+            'redirect' => $output->redirect,
+            'root_module_id' => $output->rootModuleId,
+            'sort_order' => $output->sortOrder,
+            'is_active' => $output->isActive,
+            'translations' => $bundle['translations'],
+            'price' => $bundle['price'],
+            'created_at' => $output->createdAt->format(DateTimeInterface::ATOM),
+            'updated_at' => $output->updatedAt->format(DateTimeInterface::ATOM),
         ];
     }
 }

@@ -10,7 +10,7 @@ class StoreModuleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('admin.modules.manage');
+        return true;
     }
 
     /**
@@ -19,7 +19,10 @@ class StoreModuleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'slug' => ['required', 'string', 'max:50', 'unique:modules,slug', 'regex:/^[a-z0-9_-]+$/'],
+            // The slug regex allows dots so nested module slugs like
+            // "admin.events" (matching the ModuleSlug VO) round-trip
+            // through the API. The unique check stays at the DB level.
+            'slug' => ['required', 'string', 'max:100', 'unique:modules,slug', 'regex:/^[a-z0-9]+(\.[a-z0-9]+)*$/'],
             'name' => ['required', 'string', 'max:100'],
             'icon' => ['nullable', 'string', 'max:50'],
             'redirect' => ['nullable', 'string', 'max:255'],

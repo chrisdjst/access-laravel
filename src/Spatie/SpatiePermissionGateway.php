@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Spatie;
+namespace ModularizeRbac\Laravel\Spatie;
 
-use Modularize\Access\Application\Ports\ExternalPermissionGateway;
-use Modularize\Access\Domain\Permission\PermissionName;
-use Modularize\Access\Domain\Role\GuardName;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Models\Permission as PermissionEloquent;
-use Modularize\Access\Laravel\Models\Role as RoleEloquent;
+use ModularizeRbac\Core\Application\Ports\ExternalPermissionGateway;
+use ModularizeRbac\Core\Domain\Permission\PermissionName;
+use ModularizeRbac\Core\Domain\Role\GuardName;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Models\Permission as PermissionEloquent;
+use ModularizeRbac\Laravel\Models\Role as RoleEloquent;
 
 /**
  * {@see ExternalPermissionGateway} adapter that replicates the

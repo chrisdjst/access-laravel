@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Http\Controllers;
+namespace ModularizeRbac\Laravel\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
-use Modularize\Access\Application\Ports\LanguageRepository;
-use Modularize\Access\Application\Ports\RoleModulePermissionRepository;
-use Modularize\Access\Application\Ports\TranslationRepository;
-use Modularize\Access\Application\Role\ListRoles\ListRoles;
-use Modularize\Access\Application\Role\RoleOutput;
-use Modularize\Access\Application\Role\ShowRole\ShowRole;
-use Modularize\Access\Application\Role\SyncRoleModules\SyncRoleModules;
-use Modularize\Access\Application\Role\SyncRoleModules\SyncRoleModulesInput;
-use Modularize\Access\Application\Role\UpdateRole\UpdateRole;
-use Modularize\Access\Application\Role\UpdateRole\UpdateRoleInput;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Http\Requests\SyncRoleModulesRequest;
-use Modularize\Access\Laravel\Http\Requests\UpdateRoleRequest;
-use Modularize\Access\Laravel\Http\Resources\RoleResource;
-use Modularize\Access\Laravel\Translations\TranslationApplier;
+use ModularizeRbac\Core\Application\Ports\LanguageRepository;
+use ModularizeRbac\Core\Application\Ports\RoleModulePermissionRepository;
+use ModularizeRbac\Core\Application\Ports\TranslationRepository;
+use ModularizeRbac\Core\Application\Role\ListRoles\ListRoles;
+use ModularizeRbac\Core\Application\Role\RoleOutput;
+use ModularizeRbac\Core\Application\Role\ShowRole\ShowRole;
+use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModules;
+use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModulesInput;
+use ModularizeRbac\Core\Application\Role\UpdateRole\UpdateRole;
+use ModularizeRbac\Core\Application\Role\UpdateRole\UpdateRoleInput;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Http\Requests\SyncRoleModulesRequest;
+use ModularizeRbac\Laravel\Http\Requests\UpdateRoleRequest;
+use ModularizeRbac\Laravel\Http\Resources\RoleResource;
+use ModularizeRbac\Laravel\Translations\TranslationApplier;
 
 /**
  * Thin HTTP controller for roles. Delegates to access-core use-cases

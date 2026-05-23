@@ -1,43 +1,43 @@
-# modularize/access-laravel
+# modularize-rbac/laravel
 
-Laravel bridge for [`modularize/access-core`](https://github.com/chrisdjst/access-core). Ships Eloquent repositories, HTTP controllers, FormRequests, migrations, and an optional Spatie permissions adapter so a host Laravel app can wire the hexagonal RBAC core in one `composer require`.
+Laravel bridge for [`modularize-rbac/core`](https://github.com/chrisdjst/access-core). Ships Eloquent repositories, HTTP controllers, FormRequests, migrations, and an optional Spatie permissions adapter so a host Laravel app can wire the hexagonal RBAC core in one `composer require`.
 
 [![CI](https://github.com/chrisdjst/access-laravel/actions/workflows/ci.yml/badge.svg)](https://github.com/chrisdjst/access-laravel/actions/workflows/ci.yml)
-[![Packagist](https://img.shields.io/packagist/v/modularize/access-laravel.svg)](https://packagist.org/packages/modularize/access-laravel)
+[![Packagist](https://img.shields.io/packagist/v/modularize-rbac/laravel.svg)](https://packagist.org/packages/modularize-rbac/laravel)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## What it gives you
 
 A drop-in admin RBAC layer with:
 
-- **Modules** — feature catalog with hierarchy, soft-delete, sort order, i18n.
-- **Roles** — guard-scoped, tenant-aware (optional), level-ordered, system-flag protected.
-- **Permissions** — `{slug}.{action}` names compatible with Spatie's `Gate`.
-- **Role × Module permission matrix** — flag-based UI (`is_reading_allowed`, `is_writing_allowed`, ...) translated to Spatie actions by a domain service.
-- **Languages + Translations** — polymorphic translations for module/role names with locale fallback.
-- **REST API** — `/api/admin/modules`, `/api/admin/roles`, `/api/admin/languages` ready to mount.
+- **Modules** â€” feature catalog with hierarchy, soft-delete, sort order, i18n.
+- **Roles** â€” guard-scoped, tenant-aware (optional), level-ordered, system-flag protected.
+- **Permissions** â€” `{slug}.{action}` names compatible with Spatie's `Gate`.
+- **Role Ã— Module permission matrix** â€” flag-based UI (`is_reading_allowed`, `is_writing_allowed`, ...) translated to Spatie actions by a domain service.
+- **Languages + Translations** â€” polymorphic translations for module/role names with locale fallback.
+- **REST API** â€” `/api/admin/modules`, `/api/admin/roles`, `/api/admin/languages` ready to mount.
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  Infrastructure (this package)                               │
-│  Eloquent models · Repositories · Controllers · Requests     │
-│  Resources · ServiceProvider · Migrations · Routes · Spatie  │
-└──────────────────────────┬───────────────────────────────────┘
-                           │ implements ports
-┌──────────────────────────▼───────────────────────────────────┐
-│  modularize/access-core (framework-agnostic)                 │
-│  Application use-cases · Domain entities · Ports · Events    │
-└──────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Infrastructure (this package)                               â”‚
+â”‚  Eloquent models Â· Repositories Â· Controllers Â· Requests     â”‚
+â”‚  Resources Â· ServiceProvider Â· Migrations Â· Routes Â· Spatie  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                           â”‚ implements ports
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  modularize-rbac/core (framework-agnostic)                 â”‚
+â”‚  Application use-cases Â· Domain entities Â· Ports Â· Events    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-This package depends on `modularize/access-core` for the entire domain + application layer. You can also embed `access-core` in any non-Laravel PHP project — see [its README](https://github.com/chrisdjst/access-core).
+This package depends on `modularize-rbac/core` for the entire domain + application layer. You can also embed `access-core` in any non-Laravel PHP project â€” see [its README](https://github.com/chrisdjst/access-core).
 
 ## Install
 
 ```bash
-composer require modularize/access-laravel
+composer require modularize-rbac/laravel
 php artisan vendor:publish --tag=access-config
 php artisan migrate
 ```
@@ -111,8 +111,8 @@ Each use-case calls `Authorizer::ensure('admin.X.Y')` at its boundary. The Larav
 Every use-case is resolvable from the container:
 
 ```php
-use Modularize\Access\Application\Module\CreateModule\CreateModule;
-use Modularize\Access\Application\Module\CreateModule\CreateModuleInput;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModule;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModuleInput;
 
 $module = app(CreateModule::class)->execute(new CreateModuleInput(
     slug: 'billing',
@@ -128,32 +128,32 @@ $module = app(CreateModule::class)->execute(new CreateModuleInput(
 
 ```
 .
-├── composer.json
-├── config/access.php
-├── database/migrations/        # 9 migrations
-├── routes/api.php
-├── src/
-│   ├── AccessServiceProvider.php
-│   ├── Authorization/          # GateAuthorizer
-│   ├── Eloquent/
-│   │   ├── Mappers/            # Entity <-> Eloquent
-│   │   └── Repositories/       # Implement access-core ports
-│   ├── Events/                 # LaravelEventDispatcher
-│   ├── Http/
-│   │   ├── Controllers/        # Thin — call use-cases
-│   │   ├── Requests/           # FormRequest validation
-│   │   └── Resources/          # Output DTO → JSON
-│   ├── Localization/           # LaravelLocaleResolver
-│   ├── Models/                 # Pure persistence DTOs
-│   ├── Persistence/            # SystemClock, UuidV4IdGenerator, LaravelUnitOfWork
-│   ├── Spatie/                 # Optional permission gateway
-│   └── Translations/           # TranslationApplier helper
-├── tests/                      # Pest + Testbench
-└── frontend/                   # NPM package (separate concern)
+â”œâ”€â”€ composer.json
+â”œâ”€â”€ config/access.php
+â”œâ”€â”€ database/migrations/        # 9 migrations
+â”œâ”€â”€ routes/api.php
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ AccessServiceProvider.php
+â”‚   â”œâ”€â”€ Authorization/          # GateAuthorizer
+â”‚   â”œâ”€â”€ Eloquent/
+â”‚   â”‚   â”œâ”€â”€ Mappers/            # Entity <-> Eloquent
+â”‚   â”‚   â””â”€â”€ Repositories/       # Implement access-core ports
+â”‚   â”œâ”€â”€ Events/                 # LaravelEventDispatcher
+â”‚   â”œâ”€â”€ Http/
+â”‚   â”‚   â”œâ”€â”€ Controllers/        # Thin â€” call use-cases
+â”‚   â”‚   â”œâ”€â”€ Requests/           # FormRequest validation
+â”‚   â”‚   â””â”€â”€ Resources/          # Output DTO â†’ JSON
+â”‚   â”œâ”€â”€ Localization/           # LaravelLocaleResolver
+â”‚   â”œâ”€â”€ Models/                 # Pure persistence DTOs
+â”‚   â”œâ”€â”€ Persistence/            # SystemClock, UuidV4IdGenerator, LaravelUnitOfWork
+â”‚   â”œâ”€â”€ Spatie/                 # Optional permission gateway
+â”‚   â””â”€â”€ Translations/           # TranslationApplier helper
+â”œâ”€â”€ tests/                      # Pest + Testbench
+â””â”€â”€ frontend/                   # NPM package (separate concern)
 ```
 
 ## Out of scope
 
 - AdminUser auth (the `admin.auth` middleware alias is host-defined).
-- Tenant model — pluggable via `config('access.tenant_model')`.
+- Tenant model â€” pluggable via `config('access.tenant_model')`.
 - v1.0 still hard-requires `spatie/laravel-permission`. v2.0 will fully decouple.

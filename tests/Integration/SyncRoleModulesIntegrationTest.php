@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
-use Modularize\Access\Application\Module\CreateModule\CreateModule;
-use Modularize\Access\Application\Module\CreateModule\CreateModuleInput;
-use Modularize\Access\Application\Role\SyncRoleModules\SyncRoleModules;
-use Modularize\Access\Application\Role\SyncRoleModules\SyncRoleModulesInput;
-use Modularize\Access\Laravel\Models\Role as RoleEloquent;
-use Modularize\Access\Laravel\Models\RoleModulePermission as RMP;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModule;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModuleInput;
+use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModules;
+use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModulesInput;
+use ModularizeRbac\Laravel\Models\Role as RoleEloquent;
+use ModularizeRbac\Laravel\Models\RoleModulePermission as RMP;
 
 beforeEach(function (): void {
     Gate::before(fn (?\Illuminate\Contracts\Auth\Authenticatable $user, string $ability): bool => true);

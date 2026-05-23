@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Repositories;
+namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
 use Illuminate\Support\Str;
-use Modularize\Access\Application\Ports\PermissionRepository;
-use Modularize\Access\Domain\Permission\Permission as DomainPermission;
-use Modularize\Access\Domain\Permission\PermissionName;
-use Modularize\Access\Domain\Role\GuardName;
-use Modularize\Access\Laravel\Eloquent\Mappers\PermissionMapper;
-use Modularize\Access\Laravel\Models\Permission as PermissionEloquent;
+use ModularizeRbac\Core\Application\Ports\PermissionRepository;
+use ModularizeRbac\Core\Domain\Permission\Permission as DomainPermission;
+use ModularizeRbac\Core\Domain\Permission\PermissionName;
+use ModularizeRbac\Core\Domain\Role\GuardName;
+use ModularizeRbac\Laravel\Eloquent\Mappers\PermissionMapper;
+use ModularizeRbac\Laravel\Models\Permission as PermissionEloquent;
 
 final class EloquentPermissionRepository implements PermissionRepository
 {

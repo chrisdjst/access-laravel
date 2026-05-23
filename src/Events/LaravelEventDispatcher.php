@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Events;
+namespace ModularizeRbac\Laravel\Events;
 
 use Illuminate\Contracts\Events\Dispatcher;
-use Modularize\Access\Application\Ports\DomainEventDispatcher;
-use Modularize\Access\Domain\Shared\DomainEvent;
+use ModularizeRbac\Core\Application\Ports\DomainEventDispatcher;
+use ModularizeRbac\Core\Domain\Shared\DomainEvent;
 
 /**
  * {@see DomainEventDispatcher} adapter that forwards domain events

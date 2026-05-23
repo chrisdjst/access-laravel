@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Repositories;
+namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
-use Modularize\Access\Application\Ports\RoleModulePermissionRepository;
-use Modularize\Access\Domain\Module\ModulePermission as DomainModulePermission;
-use Modularize\Access\Domain\RoleModulePermission\RoleModulePermission as DomainRMP;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Eloquent\Mappers\ModulePermissionMapper;
-use Modularize\Access\Laravel\Eloquent\Mappers\RoleModulePermissionMapper;
-use Modularize\Access\Laravel\Models\ModulePermission as ModulePermissionEloquent;
-use Modularize\Access\Laravel\Models\RoleModulePermission as RMPEloquent;
+use ModularizeRbac\Core\Application\Ports\RoleModulePermissionRepository;
+use ModularizeRbac\Core\Domain\Module\ModulePermission as DomainModulePermission;
+use ModularizeRbac\Core\Domain\RoleModulePermission\RoleModulePermission as DomainRMP;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Eloquent\Mappers\ModulePermissionMapper;
+use ModularizeRbac\Laravel\Eloquent\Mappers\RoleModulePermissionMapper;
+use ModularizeRbac\Laravel\Models\ModulePermission as ModulePermissionEloquent;
+use ModularizeRbac\Laravel\Models\RoleModulePermission as RMPEloquent;
 
 final class EloquentRoleModulePermissionRepository implements RoleModulePermissionRepository
 {

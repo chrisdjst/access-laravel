@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Mappers;
+namespace ModularizeRbac\Laravel\Eloquent\Mappers;
 
-use Modularize\Access\Domain\Module\Module as DomainModule;
-use Modularize\Access\Domain\Module\ModuleSlug;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Models\Module as ModuleEloquent;
+use ModularizeRbac\Core\Domain\Module\Module as DomainModule;
+use ModularizeRbac\Core\Domain\Module\ModuleSlug;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Models\Module as ModuleEloquent;
 
 /**
  * Translates between the {@see DomainModule} aggregate and the

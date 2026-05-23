@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Contracts;
+namespace ModularizeRbac\Laravel\Contracts;
 
 /**
  * Marker interface for tenant-owning models (Organization, Account,

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Models;
+namespace ModularizeRbac\Laravel\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Persistence-only Eloquent model. The flag→action mapping moved to
- * {@see \Modularize\Access\Domain\Module\ModulePermission::FLAG_TO_ACTION}
+ * {@see \ModularizeRbac\Core\Domain\Module\ModulePermission::FLAG_TO_ACTION}
  * and the `allowedActions()` derivation lives in
- * {@see \Modularize\Access\Domain\RoleModulePermission\PermissionFlagResolver}.
+ * {@see \ModularizeRbac\Core\Domain\RoleModulePermission\PermissionFlagResolver}.
  */
 class ModulePermission extends Model
 {

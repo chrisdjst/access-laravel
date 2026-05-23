@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Mappers;
+namespace ModularizeRbac\Laravel\Eloquent\Mappers;
 
-use Modularize\Access\Domain\Role\GuardName;
-use Modularize\Access\Domain\Role\Role as DomainRole;
-use Modularize\Access\Domain\Role\RoleLevel;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Models\Role as RoleEloquent;
+use ModularizeRbac\Core\Domain\Role\GuardName;
+use ModularizeRbac\Core\Domain\Role\Role as DomainRole;
+use ModularizeRbac\Core\Domain\Role\RoleLevel;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Models\Role as RoleEloquent;
 
 final class RoleMapper
 {

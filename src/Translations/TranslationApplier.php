@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Translations;
+namespace ModularizeRbac\Laravel\Translations;
 
-use Modularize\Access\Application\Ports\LanguageRepository;
-use Modularize\Access\Application\Ports\TranslationRepository;
-use Modularize\Access\Domain\Shared\Clock;
-use Modularize\Access\Domain\Shared\IdGenerator;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Domain\Translation\LanguageCode;
-use Modularize\Access\Domain\Translation\Translation as DomainTranslation;
-use Modularize\Access\Exceptions\InvalidInput;
+use ModularizeRbac\Core\Application\Ports\LanguageRepository;
+use ModularizeRbac\Core\Application\Ports\TranslationRepository;
+use ModularizeRbac\Core\Domain\Shared\Clock;
+use ModularizeRbac\Core\Domain\Shared\IdGenerator;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Core\Domain\Translation\LanguageCode;
+use ModularizeRbac\Core\Domain\Translation\Translation as DomainTranslation;
+use ModularizeRbac\Core\Exceptions\InvalidInput;
 
 /**
  * Helper that translates the legacy HTTP `translations[]` payload

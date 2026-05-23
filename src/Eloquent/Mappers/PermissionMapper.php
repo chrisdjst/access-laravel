@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Mappers;
+namespace ModularizeRbac\Laravel\Eloquent\Mappers;
 
-use Modularize\Access\Domain\Module\ModuleSlug;
-use Modularize\Access\Domain\Permission\Permission as DomainPermission;
-use Modularize\Access\Domain\Permission\PermissionName;
-use Modularize\Access\Domain\Role\GuardName;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Models\Permission as PermissionEloquent;
+use ModularizeRbac\Core\Domain\Module\ModuleSlug;
+use ModularizeRbac\Core\Domain\Permission\Permission as DomainPermission;
+use ModularizeRbac\Core\Domain\Permission\PermissionName;
+use ModularizeRbac\Core\Domain\Role\GuardName;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Models\Permission as PermissionEloquent;
 
 final class PermissionMapper
 {

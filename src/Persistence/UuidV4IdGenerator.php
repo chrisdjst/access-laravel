@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Persistence;
+namespace ModularizeRbac\Laravel\Persistence;
 
 use Illuminate\Support\Str;
-use Modularize\Access\Domain\Shared\IdGenerator;
-use Modularize\Access\Domain\Shared\Uuid;
+use ModularizeRbac\Core\Domain\Shared\IdGenerator;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
 
 /**
  * {@see IdGenerator} adapter producing UUIDv4 values via Laravel's

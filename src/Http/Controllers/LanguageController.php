@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Http\Controllers;
+namespace ModularizeRbac\Laravel\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
-use Modularize\Access\Application\Language\CreateLanguage\CreateLanguage;
-use Modularize\Access\Application\Language\CreateLanguage\CreateLanguageInput;
-use Modularize\Access\Application\Language\DeleteLanguage\DeleteLanguage;
-use Modularize\Access\Application\Language\ListLanguages\ListLanguages;
-use Modularize\Access\Application\Language\SetDefaultLanguage\SetDefaultLanguage;
-use Modularize\Access\Application\Language\ShowLanguage\ShowLanguage;
-use Modularize\Access\Application\Language\UpdateLanguage\UpdateLanguage;
-use Modularize\Access\Application\Language\UpdateLanguage\UpdateLanguageInput;
-use Modularize\Access\Laravel\Http\Requests\StoreLanguageRequest;
-use Modularize\Access\Laravel\Http\Requests\UpdateLanguageRequest;
-use Modularize\Access\Laravel\Http\Resources\LanguageResource;
+use ModularizeRbac\Core\Application\Language\CreateLanguage\CreateLanguage;
+use ModularizeRbac\Core\Application\Language\CreateLanguage\CreateLanguageInput;
+use ModularizeRbac\Core\Application\Language\DeleteLanguage\DeleteLanguage;
+use ModularizeRbac\Core\Application\Language\ListLanguages\ListLanguages;
+use ModularizeRbac\Core\Application\Language\SetDefaultLanguage\SetDefaultLanguage;
+use ModularizeRbac\Core\Application\Language\ShowLanguage\ShowLanguage;
+use ModularizeRbac\Core\Application\Language\UpdateLanguage\UpdateLanguage;
+use ModularizeRbac\Core\Application\Language\UpdateLanguage\UpdateLanguageInput;
+use ModularizeRbac\Laravel\Http\Requests\StoreLanguageRequest;
+use ModularizeRbac\Laravel\Http\Requests\UpdateLanguageRequest;
+use ModularizeRbac\Laravel\Http\Resources\LanguageResource;
 
 /**
  * Thin HTTP controller — delegates to access-core language use-cases.

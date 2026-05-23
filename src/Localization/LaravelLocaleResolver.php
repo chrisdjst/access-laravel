@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Localization;
+namespace ModularizeRbac\Laravel\Localization;
 
 use Illuminate\Contracts\Foundation\Application;
-use Modularize\Access\Application\Ports\LocaleResolver;
-use Modularize\Access\Domain\Translation\LanguageCode;
+use ModularizeRbac\Core\Application\Ports\LocaleResolver;
+use ModularizeRbac\Core\Domain\Translation\LanguageCode;
 
 /**
  * {@see LocaleResolver} adapter that reads the active locale from

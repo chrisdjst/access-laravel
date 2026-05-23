@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Gate;
-use Modularize\Access\Application\Module\CreateModule\CreateModule;
-use Modularize\Access\Application\Module\CreateModule\CreateModuleInput;
-use Modularize\Access\Application\Module\ListModules\ListModules;
-use Modularize\Access\Application\Module\ShowModule\ShowModule;
-use Modularize\Access\Laravel\Models\Module as ModuleEloquent;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModule;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModuleInput;
+use ModularizeRbac\Core\Application\Module\ListModules\ListModules;
+use ModularizeRbac\Core\Application\Module\ShowModule\ShowModule;
+use ModularizeRbac\Laravel\Models\Module as ModuleEloquent;
 
 beforeEach(function (): void {
     // Anonymous-friendly bypass — production hosts wire real policies;
@@ -52,5 +52,5 @@ it('rejects duplicate slugs at the use-case layer (no DB constraint hit)', funct
     $create->execute(new CreateModuleInput('events', 'Events', null, null, null));
 
     expect(fn () => $create->execute(new CreateModuleInput('events', 'Other', null, null, null)))
-        ->toThrow(\Modularize\Access\Exceptions\InvalidInput::class);
+        ->toThrow(\ModularizeRbac\Core\Exceptions\InvalidInput::class);
 });

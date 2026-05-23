@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
-use Modularize\Access\Laravel\Models\Role as RoleEloquent;
+use ModularizeRbac\Laravel\Models\Role as RoleEloquent;
 
 beforeEach(function (): void {
     Gate::before(fn (?\Illuminate\Contracts\Auth\Authenticatable $user, string $ability): bool => true);

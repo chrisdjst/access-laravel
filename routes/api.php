@@ -6,6 +6,7 @@ use ModularizeRbac\Laravel\Http\Controllers\AuditController;
 use ModularizeRbac\Laravel\Http\Controllers\LanguageController;
 use ModularizeRbac\Laravel\Http\Controllers\ModuleController;
 use ModularizeRbac\Laravel\Http\Controllers\RoleController;
+use ModularizeRbac\Laravel\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,9 +21,14 @@ use Illuminate\Support\Facades\Route;
 Route::apiResource('modules', ModuleController::class);
 
 Route::get('roles', [RoleController::class, 'index']);
+Route::post('roles', [RoleController::class, 'store']);
 Route::get('roles/{role}', [RoleController::class, 'show']);
 Route::put('roles/{role}', [RoleController::class, 'update']);
+Route::delete('roles/{role}', [RoleController::class, 'destroy']);
 Route::put('roles/{role}/modules', [RoleController::class, 'syncModules']);
+Route::get('roles/{role}/permission-matrix', [RoleController::class, 'permissionMatrix']);
+
+Route::get('users/{user}/accessible-modules', [UserController::class, 'accessibleModules']);
 
 Route::apiResource('languages', LanguageController::class);
 Route::put('languages/{language}/default', [LanguageController::class, 'setDefault']);

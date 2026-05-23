@@ -2,6 +2,23 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.1.0] - Unreleased
+
+### Added
+
+- New REST endpoints exposing use-cases that already existed in the core but had no HTTP surface:
+  - `POST /api/admin/roles` — create a role (`admin.roles.create`). Validates name format, guard, optional tenant, and uniqueness.
+  - `DELETE /api/admin/roles/{role}` — delete a role (`admin.roles.delete`). Rejects system roles and roles with active bindings.
+  - `GET /api/admin/roles/{role}/permission-matrix` — full per-module flag matrix in one call (`admin.roles.view`). Replaces the inline `enrich()` N+1 in callers.
+  - `GET /api/admin/users/{user}/accessible-modules` — distinct modules the user can access via any of their roles (`admin.modules.view`).
+- `StoreRoleRequest`, `RolePermissionMatrixResource`, `AccessibleModuleResource`, `UserController` to back the new routes.
+- `EloquentRoleRepository::delete()` and `findByName()` adapter methods (mirroring the new core port additions in `modularize-rbac/core` v1.2.0).
+
+### Changed
+
+- `RoleController` constructor signature widened to inject the new use-cases (`CreateRole`, `DeleteRole`, `GetRolePermissionMatrix`). Hosts that replaced the controller with a subclass need to thread the new dependencies through.
+- `composer.json` requires `modularize-rbac/core: ^1.2` (additive bump).
+
 ## [2.0.1] - 2026-05-23
 
 Hotfix release: clean up dead config keys, emit logs for silenced infrastructure failures, and close test-coverage gaps in the v2.0 adapters.

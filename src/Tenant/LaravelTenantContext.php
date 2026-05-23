@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ModularizeRbac\Laravel\Tenant;
 
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Support\Facades\Log;
 use ModularizeRbac\Core\Application\Ports\TenantContext;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
 use Throwable;
@@ -43,7 +44,13 @@ final class LaravelTenantContext implements TenantContext
 
         try {
             return new Uuid((string) $value);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            Log::warning('access: tenant context binding has a non-UUID value', [
+                'bind_key' => $this->bindKey,
+                'value_type' => get_debug_type($value),
+                'exception' => $e->getMessage(),
+            ]);
+
             return null;
         }
     }

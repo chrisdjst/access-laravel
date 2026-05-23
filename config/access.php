@@ -54,28 +54,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Admin team id
-    |--------------------------------------------------------------------------
-    |
-    | Sentinel UUID used by the admin middleware to scope permission checks
-    | to "global admin" (not tied to any tenant). Spatie's teams feature
-    | requires a non-null team id; this is the conventional zero-uuid.
-    */
-    'admin_team_id' => '00000000-0000-0000-0000-000000000000',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Translations
-    |--------------------------------------------------------------------------
-    |
-    | When true, Module + Role names/descriptions can be translated via the
-    | package's Language + Translation tables. Set false to drop the i18n
-    | layer (models will fall back to their canonical column values).
-    */
-    'translations_enabled' => true,
-
-    /*
-    |--------------------------------------------------------------------------
     | Spatie permission sync
     |--------------------------------------------------------------------------
     |

@@ -18,6 +18,7 @@ use Illuminate\Support\ServiceProvider;
 use ModularizeRbac\Core\Exceptions\AuthorizationFailed;
 use ModularizeRbac\Core\Exceptions\InvalidInput;
 use ModularizeRbac\Core\Exceptions\NotFound;
+use ModularizeRbac\Core\Application\Ports\AuditRepository;
 use ModularizeRbac\Core\Application\Ports\Authorizer;
 use ModularizeRbac\Core\Application\Ports\DomainEventDispatcher;
 use ModularizeRbac\Core\Application\Ports\ExternalPermissionGateway;
@@ -33,7 +34,9 @@ use ModularizeRbac\Core\Application\Ports\UnitOfWork;
 use ModularizeRbac\Core\Application\Ports\UserRoleResolver;
 use ModularizeRbac\Core\Domain\Shared\Clock;
 use ModularizeRbac\Core\Domain\Shared\IdGenerator;
+use ModularizeRbac\Laravel\Audit\AuditingListener;
 use ModularizeRbac\Laravel\Authorization\GateAuthorizer;
+use ModularizeRbac\Laravel\Eloquent\Mappers\AuditEntryMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\LanguageMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\ModuleMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\ModulePermissionMapper;
@@ -41,6 +44,7 @@ use ModularizeRbac\Laravel\Eloquent\Mappers\PermissionMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\RoleMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\RoleModulePermissionMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\TranslationMapper;
+use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentAuditRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentLanguageRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentModuleRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentPermissionRepository;
@@ -154,7 +158,12 @@ class AccessServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(DomainEventDispatcher::class, function (Application $app): LaravelEventDispatcher {
-            return new LaravelEventDispatcher($app->make(Dispatcher::class));
+            $auditEnabled = (bool) config('access.audit.enabled', true);
+
+            return new LaravelEventDispatcher(
+                dispatcher: $app->make(Dispatcher::class),
+                audit: $auditEnabled ? $app->make(AuditingListener::class) : null,
+            );
         });
 
         $this->app->singleton(Authorizer::class, function (Application $app): GateAuthorizer {
@@ -179,6 +188,7 @@ class AccessServiceProvider extends ServiceProvider
         $this->app->singleton(TranslationMapper::class);
         $this->app->singleton(ModulePermissionMapper::class);
         $this->app->singleton(RoleModulePermissionMapper::class);
+        $this->app->singleton(AuditEntryMapper::class);
 
         $this->app->bind(ModuleRepository::class, EloquentModuleRepository::class);
         $this->app->bind(RoleRepository::class, EloquentRoleRepository::class);
@@ -186,6 +196,7 @@ class AccessServiceProvider extends ServiceProvider
         $this->app->bind(LanguageRepository::class, EloquentLanguageRepository::class);
         $this->app->bind(TranslationRepository::class, EloquentTranslationRepository::class);
         $this->app->bind(RoleModulePermissionRepository::class, EloquentRoleModulePermissionRepository::class);
+        $this->app->bind(AuditRepository::class, EloquentAuditRepository::class);
 
         $this->app->bind(UserRoleResolver::class, function (Application $app): EloquentUserRoleResolver {
             return new EloquentUserRoleResolver(

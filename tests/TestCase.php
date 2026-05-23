@@ -183,5 +183,18 @@ abstract class TestCase extends Orchestra
                 $table->primary(['role_id', 'user_id', 'organization_id'], 'role_user_pk');
             });
         }
+
+        if (! $schema->hasTable('access_audit_log')) {
+            $schema->create('access_audit_log', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->string('event_name', 150);
+                $table->uuid('actor_id')->nullable();
+                $table->uuid('tenant_id')->nullable();
+                $table->json('payload');
+                $table->timestamp('occurred_at');
+                $table->index('occurred_at');
+                $table->index('event_name');
+            });
+        }
     }
 }

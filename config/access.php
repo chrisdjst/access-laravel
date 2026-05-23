@@ -91,4 +91,23 @@ return [
     'spatie' => [
         'enabled' => null,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Audit log
+    |--------------------------------------------------------------------------
+    |
+    | Auto-record every domain event the package dispatches into the
+    | `access_audit_log` table. Useful for compliance / forensics:
+    | every module create/update/delete, every role permission sync,
+    | every default-language swap leaves a trail with actor + tenant
+    | + payload.
+    |
+    | Hosts that don't need it can disable to skip the persistence
+    | step on every use-case. The audit table can also be queried
+    | through `GET /api/admin/audit` (admin.audit.view ability).
+    */
+    'audit' => [
+        'enabled' => true,
+    ],
 ];

@@ -7,22 +7,26 @@ namespace ModularizeRbac\Laravel\Tests;
 use Illuminate\Database\Schema\Blueprint;
 use ModularizeRbac\Laravel\AccessServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Spatie\Permission\PermissionServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupSpatieMinimalTables();
+        $this->setupAccessTables();
     }
 
     protected function getPackageProviders($app): array
     {
-        return [
-            PermissionServiceProvider::class,
-            AccessServiceProvider::class,
-        ];
+        $providers = [];
+        // Spatie is opt-in in v2 — register its provider only when
+        // the package is actually installed alongside the bridge.
+        if (class_exists(\Spatie\Permission\PermissionServiceProvider::class)) {
+            $providers[] = \Spatie\Permission\PermissionServiceProvider::class;
+        }
+        $providers[] = AccessServiceProvider::class;
+
+        return $providers;
     }
 
     protected function defineEnvironment($app): void
@@ -39,29 +43,22 @@ abstract class TestCase extends Orchestra
         // tests aren't kicked by auth:sanctum / admin.auth.
         $app['config']->set('access.middleware', ['api']);
         $app['config']->set('app.fallback_locale', 'en');
-        $app['config']->set('permission.table_names', [
-            'roles' => 'roles',
-            'permissions' => 'permissions',
-            'model_has_permissions' => 'model_has_permissions',
-            'model_has_roles' => 'model_has_roles',
-            'role_has_permissions' => 'role_has_permissions',
-        ]);
-        $app['config']->set('permission.column_names', [
-            'role_pivot_key' => 'role_id',
-            'permission_pivot_key' => 'permission_id',
-            'model_morph_key' => 'model_id',
-            'team_foreign_key' => 'organization_id',
-        ]);
-        $app['config']->set('permission.teams', false);
+
+        if (class_exists(\Spatie\Permission\PermissionServiceProvider::class)) {
+            $app['config']->set('permission.teams', false);
+        }
     }
 
     /**
-     * Bring up the bare schema our domain repositories need on a
-     * fresh SQLite database. We hand-roll it rather than running the
-     * 9 package migrations so the test suite stays fast and isolates
-     * the schema changes that matter for integration tests.
+     * Bring up the bare schema our repositories need on a fresh
+     * SQLite database. We hand-roll it rather than running the
+     * package migrations so the test suite stays fast and isolates
+     * the schema shape that matters for integration tests.
+     *
+     * Mirrors the v2.0 migration set hardcoded — no config('permission.*')
+     * dependency.
      */
-    protected function setupSpatieMinimalTables(): void
+    protected function setupAccessTables(): void
     {
         $schema = $this->app['db']->connection()->getSchemaBuilder();
 

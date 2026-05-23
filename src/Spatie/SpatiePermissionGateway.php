@@ -4,46 +4,53 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Spatie;
 
+use Illuminate\Database\ConnectionInterface;
 use ModularizeRbac\Core\Application\Ports\ExternalPermissionGateway;
 use ModularizeRbac\Core\Domain\Permission\PermissionName;
 use ModularizeRbac\Core\Domain\Role\GuardName;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
 use ModularizeRbac\Laravel\Models\Permission as PermissionEloquent;
-use ModularizeRbac\Laravel\Models\Role as RoleEloquent;
+use Throwable;
 
 /**
- * {@see ExternalPermissionGateway} adapter that replicates the
- * RBAC core's grant/revoke plan into Spatie's `role_has_permissions`
- * table so legacy `$user->can('events.view')` checks keep working.
+ * Pivot-table sync gateway. Replicates the RBAC core's grant/revoke
+ * plan into the `role_has_permissions` pivot so any host that uses
+ * Spatie's `HasRoles` trait on its User model continues to resolve
+ * `$user->can('events.view')` correctly.
  *
- * The class is only wired by the ServiceProvider when
- * `spatie/laravel-permission` is installed and
- * `config('access.spatie.enabled')` is true. Hosts that don't use
- * Spatie get the {@see NullExternalPermissionGateway} instead.
+ * v2.0 rewrite: the gateway no longer relies on Spatie's model
+ * inheritance or APIs. It writes the pivot rows directly via the
+ * connection's query builder, identifying permissions by their
+ * (name, guard) tuple in the package's own `permissions` table. This
+ * means the gateway works as long as the schema this package owns is
+ * present — Spatie itself is only required because that's the
+ * ecosystem the pivot is meant to feed.
  *
- * Idempotency: Spatie's own `givePermissionTo` / `revokePermissionTo`
- * are idempotent on already-(granted|revoked) permissions, so
- * `applyPlan()` is safe to call multiple times with the same delta.
+ * Idempotency: `insertOrIgnore` for grants, conditional `delete` for
+ * revokes — safe to call repeatedly with the same delta.
  */
 final class SpatiePermissionGateway implements ExternalPermissionGateway
 {
+    public function __construct(private readonly ConnectionInterface $db)
+    {
+    }
+
     public function permissionsHeldBy(Uuid $roleId, GuardName $guard): array
     {
-        $role = RoleEloquent::query()->find($roleId->value);
-        if ($role === null) {
-            return [];
-        }
+        $rows = $this->db->table('role_has_permissions')
+            ->join('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_has_permissions.role_id', $roleId->value)
+            ->where('permissions.guard_name', $guard->value)
+            ->pluck('permissions.name');
 
         $names = [];
-        foreach ($role->permissions as $permission) {
-            $name = (string) $permission->name;
+        foreach ($rows as $name) {
             try {
-                $names[] = new PermissionName($name);
-            } catch (\Throwable) {
-                // Spatie permissions outside our `{slug}.{action}`
-                // convention (legacy seeders, host extras) are
-                // ignored here — the synchronizer only manages the
-                // canonical action set anyway.
+                $names[] = new PermissionName((string) $name);
+            } catch (Throwable) {
+                // Permissions outside the `{slug}.{action}` convention
+                // (legacy seeders, host extras) are ignored — the
+                // synchronizer only manages the canonical action set.
                 continue;
             }
         }
@@ -53,17 +60,26 @@ final class SpatiePermissionGateway implements ExternalPermissionGateway
 
     public function applyPlan(Uuid $roleId, GuardName $guard, array $granted, array $revoked): void
     {
-        $role = RoleEloquent::query()->find($roleId->value);
-        if ($role === null) {
-            return;
+        foreach ($granted as $name) {
+            $permission = PermissionEloquent::findOrCreate($name->value, $guard->value);
+            $this->db->table('role_has_permissions')->insertOrIgnore([
+                'permission_id' => $permission->id,
+                'role_id' => $roleId->value,
+            ]);
         }
 
-        foreach ($granted as $name) {
-            PermissionEloquent::findOrCreate($name->value, $guard->value);
-            $role->givePermissionTo($name->value);
-        }
         foreach ($revoked as $name) {
-            $role->revokePermissionTo($name->value);
+            $permission = PermissionEloquent::query()
+                ->where('name', $name->value)
+                ->where('guard_name', $guard->value)
+                ->first();
+            if ($permission === null) {
+                continue;
+            }
+            $this->db->table('role_has_permissions')
+                ->where('role_id', $roleId->value)
+                ->where('permission_id', $permission->id)
+                ->delete();
         }
     }
 }

@@ -173,5 +173,15 @@ abstract class TestCase extends Orchestra
                 $table->timestamps();
             });
         }
+
+        if (! $schema->hasTable('role_user')) {
+            $schema->create('role_user', function (Blueprint $table): void {
+                $table->uuid('role_id');
+                $table->uuid('user_id');
+                $table->uuid('organization_id')->nullable();
+                $table->timestamps();
+                $table->primary(['role_id', 'user_id', 'organization_id'], 'role_user_pk');
+            });
+        }
     }
 }

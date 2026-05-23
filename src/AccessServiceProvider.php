@@ -12,6 +12,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Foundation\Exceptions\Handler as FoundationHandler;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Gate as GateFacade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use ModularizeRbac\Core\Exceptions\AuthorizationFailed;
@@ -26,8 +27,10 @@ use ModularizeRbac\Core\Application\Ports\ModuleRepository;
 use ModularizeRbac\Core\Application\Ports\PermissionRepository;
 use ModularizeRbac\Core\Application\Ports\RoleModulePermissionRepository;
 use ModularizeRbac\Core\Application\Ports\RoleRepository;
+use ModularizeRbac\Core\Application\Ports\TenantContext;
 use ModularizeRbac\Core\Application\Ports\TranslationRepository;
 use ModularizeRbac\Core\Application\Ports\UnitOfWork;
+use ModularizeRbac\Core\Application\Ports\UserRoleResolver;
 use ModularizeRbac\Core\Domain\Shared\Clock;
 use ModularizeRbac\Core\Domain\Shared\IdGenerator;
 use ModularizeRbac\Laravel\Authorization\GateAuthorizer;
@@ -44,6 +47,7 @@ use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentPermissionRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentRoleModulePermissionRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentRoleRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentTranslationRepository;
+use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentUserRoleResolver;
 use ModularizeRbac\Laravel\Events\LaravelEventDispatcher;
 use ModularizeRbac\Laravel\Localization\LaravelLocaleResolver;
 use ModularizeRbac\Laravel\Persistence\LaravelUnitOfWork;
@@ -51,6 +55,7 @@ use ModularizeRbac\Laravel\Persistence\SystemClock;
 use ModularizeRbac\Laravel\Persistence\UuidV4IdGenerator;
 use ModularizeRbac\Laravel\Spatie\NullExternalPermissionGateway;
 use ModularizeRbac\Laravel\Spatie\SpatiePermissionGateway;
+use ModularizeRbac\Laravel\Tenant\LaravelTenantContext;
 
 class AccessServiceProvider extends ServiceProvider
 {
@@ -72,6 +77,34 @@ class AccessServiceProvider extends ServiceProvider
 
         $this->registerRoutes();
         $this->registerExceptionRenderers();
+        $this->registerAccessGate();
+    }
+
+    /**
+     * Register a `Gate::before` callback that delegates to the
+     * {@see \ModularizeRbac\Laravel\Concerns\HasAccessPermissions}
+     * trait when the authenticated user has it. Returning null from
+     * the callback (when the user lacks the trait or doesn't grant
+     * the ability) lets Laravel continue evaluating policies; an
+     * explicit `true` short-circuits any other gates.
+     *
+     * Hosts that don't use the trait are unaffected — Gate behaves
+     * exactly as before. Hosts that use Spatie's HasRoles trait
+     * instead also continue to work since this callback returns
+     * null when canAccess() returns false (not blocking other paths).
+     */
+    protected function registerAccessGate(): void
+    {
+        GateFacade::before(static function ($user, string $ability): ?bool {
+            if ($user === null) {
+                return null;
+            }
+            if (! method_exists($user, 'canAccess')) {
+                return null;
+            }
+
+            return $user->canAccess($ability) ? true : null;
+        });
     }
 
     /**
@@ -116,6 +149,10 @@ class AccessServiceProvider extends ServiceProvider
             return new LaravelLocaleResolver($app);
         });
 
+        $this->app->singleton(TenantContext::class, function (Application $app): LaravelTenantContext {
+            return new LaravelTenantContext($app);
+        });
+
         $this->app->singleton(DomainEventDispatcher::class, function (Application $app): LaravelEventDispatcher {
             return new LaravelEventDispatcher($app->make(Dispatcher::class));
         });
@@ -149,6 +186,12 @@ class AccessServiceProvider extends ServiceProvider
         $this->app->bind(LanguageRepository::class, EloquentLanguageRepository::class);
         $this->app->bind(TranslationRepository::class, EloquentTranslationRepository::class);
         $this->app->bind(RoleModulePermissionRepository::class, EloquentRoleModulePermissionRepository::class);
+
+        $this->app->bind(UserRoleResolver::class, function (Application $app): EloquentUserRoleResolver {
+            return new EloquentUserRoleResolver(
+                $app->make(ConnectionResolverInterface::class)->connection(),
+            );
+        });
     }
 
     protected function registerRoutes(): void

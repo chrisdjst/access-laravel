@@ -77,6 +77,11 @@ class AccessServiceProvider extends ServiceProvider
             __DIR__.'/../config/access.php' => config_path('access.php'),
         ], 'access-config');
 
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'access');
+        $this->publishes([
+            __DIR__.'/../lang' => $this->app->langPath('vendor/access'),
+        ], 'access-lang');
+
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->registerRoutes();
@@ -169,14 +174,21 @@ class AccessServiceProvider extends ServiceProvider
         $handler->renderable(static function (InvalidInput $e): JsonResponse {
             return new JsonResponse([
                 'message' => $e->getMessage(),
+                'error_type' => trans('access::exceptions.invalid_input'),
                 'errors' => [$e->field => [$e->getMessage()]],
             ], 422);
         });
         $handler->renderable(static function (NotFound $e): JsonResponse {
-            return new JsonResponse(['message' => $e->getMessage()], 404);
+            return new JsonResponse([
+                'message' => $e->getMessage(),
+                'error_type' => trans('access::exceptions.not_found'),
+            ], 404);
         });
         $handler->renderable(static function (AuthorizationFailed $e): JsonResponse {
-            return new JsonResponse(['message' => $e->getMessage()], 403);
+            return new JsonResponse([
+                'message' => $e->getMessage(),
+                'error_type' => trans('access::exceptions.authorization_failed'),
+            ], 403);
         });
     }
 

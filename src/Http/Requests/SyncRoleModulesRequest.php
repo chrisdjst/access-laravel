@@ -19,7 +19,13 @@ class SyncRoleModulesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'modules' => ['required', 'array'],
+            // Required key but accepts an empty array — that's the
+            // semantic the DeleteRole use-case relies on for the
+            // "drop all bindings before delete" flow.
+            'modules' => ['present', 'array'],
+            // Each entry MUST be an associative array — rejects
+            // scalars, strings, and indexed sub-arrays.
+            'modules.*' => ['array'],
             'modules.*.module_id' => ['required', 'uuid', 'exists:modules,id'],
             'modules.*.is_reading_allowed' => ['sometimes', 'boolean'],
             'modules.*.is_writing_allowed' => ['sometimes', 'boolean'],

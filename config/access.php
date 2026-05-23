@@ -54,6 +54,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Allowed locales
+    |--------------------------------------------------------------------------
+    |
+    | Optional whitelist consulted by `StoreLanguageRequest` and
+    | `UpdateLanguageRequest`. When set to a non-empty list, language `code`
+    | submissions must match one of the entries. Leave empty / unset to
+    | accept any BCP-47-ish code that survives the LanguageCode VO.
+    |
+    | Example: ['pt_BR', 'en', 'es', 'fr']
+    */
+    'allowed_locales' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Spatie permission sync
     |--------------------------------------------------------------------------
     |

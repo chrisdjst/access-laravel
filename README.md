@@ -1,66 +1,54 @@
 # modularize/access-laravel
 
-Laravel bridge for [`modularize/access-core`](https://github.com/chrisdjst/access-core): module + role + permission management with i18n translations, backed by Eloquent and (optionally) Spatie permissions.
+Laravel bridge for [`modularize/access-core`](https://github.com/chrisdjst/access-core). Ships Eloquent repositories, HTTP controllers, FormRequests, migrations, and an optional Spatie permissions adapter so a host Laravel app can wire the hexagonal RBAC core in one `composer require`.
 
-> **Status: WIP, refactoring towards v1.0.**
->
-> This package was previously published as `casamento/rbac`. It is currently being rewritten with a hexagonal architecture, splitting the framework-agnostic core into `modularize/access-core`. The current `main` branch carries the renamed namespaces; the deeper architectural refactor is rolling out in PRs 1-6 (see [CHANGELOG.md](./CHANGELOG.md)). The first stable Packagist release will be `v1.0.0`.
+[![CI](https://github.com/chrisdjst/access-laravel/actions/workflows/ci.yml/badge.svg)](https://github.com/chrisdjst/access-laravel/actions/workflows/ci.yml)
+[![Packagist](https://img.shields.io/packagist/v/modularize/access-laravel.svg)](https://packagist.org/packages/modularize/access-laravel)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## What's inside (current state)
+## What it gives you
 
-- Models: `Module`, `ModulePermission`, `ModulePrice`, `RoleModulePermission`, `Role` (extends Spatie), `Permission` (extends Spatie), `Language`, `Translation`.
-- Controllers + routes: `GET/POST/PUT/DELETE /admin/modules`, `/admin/roles`, `/admin/languages`, plus `PUT /admin/roles/{id}/modules` for the permission matrix.
-- FormRequests, JsonResources, observer that mirrors the custom `role_module_permission` pivot into Spatie's `role_has_permissions`.
-- 9 migrations covering Spatie tables + modules/permissions/languages/translations.
-- Concerns: `HasUuid`, `HasTranslations` (these will be replaced by domain value objects + services in PR 1).
+A drop-in admin RBAC layer with:
 
-A separate frontend NPM package (`@casamento/admin-rbac`, will be renamed) lives under `frontend/` — see `frontend/README.md`.
+- **Modules** — feature catalog with hierarchy, soft-delete, sort order, i18n.
+- **Roles** — guard-scoped, tenant-aware (optional), level-ordered, system-flag protected.
+- **Permissions** — `{slug}.{action}` names compatible with Spatie's `Gate`.
+- **Role × Module permission matrix** — flag-based UI (`is_reading_allowed`, `is_writing_allowed`, ...) translated to Spatie actions by a domain service.
+- **Languages + Translations** — polymorphic translations for module/role names with locale fallback.
+- **REST API** — `/api/admin/modules`, `/api/admin/roles`, `/api/admin/languages` ready to mount.
 
-## Layout
+## Architecture
 
 ```
-.
-├── composer.json
-├── config/access.php           # publishable config
-├── database/migrations/        # 9 migrations
-├── routes/api.php              # module + role + language routes
-├── src/
-│   ├── Concerns/               # HasUuid, HasTranslations (to be extracted to access-core)
-│   ├── Contracts/              # Tenant marker interface
-│   ├── Http/{Controllers,Requests,Resources}/
-│   ├── Models/
-│   ├── Observers/
-│   └── AccessServiceProvider.php
-├── tests/
-└── frontend/                   # NPM package (separate concern)
+┌──────────────────────────────────────────────────────────────┐
+│  Infrastructure (this package)                               │
+│  Eloquent models · Repositories · Controllers · Requests     │
+│  Resources · ServiceProvider · Migrations · Routes · Spatie  │
+└──────────────────────────┬───────────────────────────────────┘
+                           │ implements ports
+┌──────────────────────────▼───────────────────────────────────┐
+│  modularize/access-core (framework-agnostic)                 │
+│  Application use-cases · Domain entities · Ports · Events    │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-## Backend install (host Laravel app)
+This package depends on `modularize/access-core` for the entire domain + application layer. You can also embed `access-core` in any non-Laravel PHP project — see [its README](https://github.com/chrisdjst/access-core).
 
-While `v1.0.0` is not yet on Packagist, install via path repository in the host:
-
-```json
-"require": {
-    "modularize/access-laravel": "^1.0@dev"
-},
-"repositories": [
-    { "type": "path", "url": "../access-laravel", "options": { "symlink": true } }
-]
-```
-
-Then:
+## Install
 
 ```bash
-composer require modularize/access-laravel:^1.0@dev
+composer require modularize/access-laravel
 php artisan vendor:publish --tag=access-config
 php artisan migrate
 ```
 
-Edit `config/access.php` and point `tenant_model` at your tenant class (e.g. `App\Models\Organization::class`) or leave `null` for single-tenant setups. Roles call `->tenant()` to resolve their owner.
+Edit `config/access.php` and point `tenant_model` at your tenant class (e.g. `App\Models\Organization::class`) or leave `null` for single-tenant setups.
 
-### config/auth.php
+## Host wiring
 
-The package's default `guard_name` is `admin`. Ensure your host's `config/auth.php` defines that guard:
+### `config/auth.php`
+
+The package defaults to the `admin` guard. Define it in the host:
 
 ```php
 'guards' => [
@@ -71,46 +59,26 @@ The package's default `guard_name` is `admin`. Ensure your host's `config/auth.p
 ],
 ```
 
-### admin.auth middleware
+### Middleware
 
-The package's routes use `auth:sanctum` + `admin.auth`. The host app must register the `admin.auth` alias (typically in `bootstrap/app.php`) pointing at a middleware that:
-1. Confirms the authenticated user is an admin.
-2. Sets the Spatie team context: `setPermissionsTeamId(config('access.admin_team_id'))`.
+By default routes use `['api', 'auth:sanctum']`. If your admin flow needs a custom alias (e.g. `admin.auth` that sets the Spatie team id), register it in `bootstrap/app.php` and add it to `config('access.middleware')`.
 
-> Note: in v1.0 the default middleware stack will be lighter (`['api', 'auth:sanctum']`); the `admin.auth` alias will become opt-in.
+### Spatie integration (optional sync)
 
-### config/permission.php
-
-To use the package's `Role` + `Permission` instead of Spatie's defaults:
+`spatie/laravel-permission` is currently a hard dependency in v1.0 because `Role`/`Permission` extend Spatie's models. The **sync** (replicating role-module-permission grants into `role_has_permissions`) is opt-out:
 
 ```php
-'models' => [
-    'permission' => \Modularize\Access\Laravel\Models\Permission::class,
-    'role' => \Modularize\Access\Laravel\Models\Role::class,
+// config/access.php
+'spatie' => [
+    'enabled' => null, // null = auto, true = force on, false = force off
 ],
 ```
 
-### Windows note
+When the sync is off, `SyncRoleModules` still writes to the package's own tables; only the Spatie-side replication is skipped. v2.0 will fully decouple `Role` from `SpatieRole`.
 
-`"symlink": true` requires Developer Mode. Without it, Composer falls back to copying.
+## REST API
 
-### Docker / Sail note
-
-When the host runs in a container, mount the package path explicitly in `docker-compose.yml`:
-
-```yaml
-services:
-  app:
-    volumes:
-      - '.:/var/www/html'
-      - '../access-laravel:/var/www/access-laravel'
-```
-
-Then run `composer install` **inside the container**.
-
-## Routes registered
-
-All under `config('access.route_prefix')` (default `api/admin`):
+All routes under `config('access.route_prefix')` (default `api/admin`):
 
 | Method | URL | Action |
 |---|---|---|
@@ -119,10 +87,10 @@ All under `config('access.route_prefix')` (default `api/admin`):
 | GET | /modules/{id} | Show one |
 | PUT | /modules/{id} | Update (incl. translations) |
 | DELETE | /modules/{id} | Soft delete |
-| GET | /roles | List roles |
-| GET | /roles/{role} | Show role + flags matrix |
-| PUT | /roles/{role} | Update display_name + translations |
-| PUT | /roles/{role}/modules | Sync the role's full permission matrix |
+| GET | /roles | List roles (filter by `?guard=` and `?organization_id=`) |
+| GET | /roles/{id} | Show role + flags matrix |
+| PUT | /roles/{id} | Update display_name + translations |
+| PUT | /roles/{id}/modules | Sync the role's full permission matrix |
 | GET | /languages | List languages |
 | POST | /languages | Create |
 | GET | /languages/{id} | Show |
@@ -130,9 +98,62 @@ All under `config('access.route_prefix')` (default `api/admin`):
 | DELETE | /languages/{id} | Delete (rejects default language) |
 | PUT | /languages/{id}/default | Mark as default |
 
+## Authorization
+
+Each use-case calls `Authorizer::ensure('admin.X.Y')` at its boundary. The Laravel adapter (`GateAuthorizer`) delegates to Laravel's `Gate` resolved against the configured guard. Register policies / `Gate::define()` in your host's `AuthServiceProvider` for the canonical abilities the package checks:
+
+- `admin.modules.view`, `admin.modules.create`, `admin.modules.update`, `admin.modules.delete`
+- `admin.roles.view`, `admin.roles.update`
+- `admin.languages.view`, `admin.languages.create`, `admin.languages.update`, `admin.languages.delete`
+
+## Calling use-cases directly (CLI, jobs, custom controllers)
+
+Every use-case is resolvable from the container:
+
+```php
+use Modularize\Access\Application\Module\CreateModule\CreateModule;
+use Modularize\Access\Application\Module\CreateModule\CreateModuleInput;
+
+$module = app(CreateModule::class)->execute(new CreateModuleInput(
+    slug: 'billing',
+    name: 'Billing',
+    redirect: '/billing',
+    icon: 'receipt',
+    rootModuleId: null,
+    sortOrder: 10,
+));
+```
+
+## Layout
+
+```
+.
+├── composer.json
+├── config/access.php
+├── database/migrations/        # 9 migrations
+├── routes/api.php
+├── src/
+│   ├── AccessServiceProvider.php
+│   ├── Authorization/          # GateAuthorizer
+│   ├── Eloquent/
+│   │   ├── Mappers/            # Entity <-> Eloquent
+│   │   └── Repositories/       # Implement access-core ports
+│   ├── Events/                 # LaravelEventDispatcher
+│   ├── Http/
+│   │   ├── Controllers/        # Thin — call use-cases
+│   │   ├── Requests/           # FormRequest validation
+│   │   └── Resources/          # Output DTO → JSON
+│   ├── Localization/           # LaravelLocaleResolver
+│   ├── Models/                 # Pure persistence DTOs
+│   ├── Persistence/            # SystemClock, UuidV4IdGenerator, LaravelUnitOfWork
+│   ├── Spatie/                 # Optional permission gateway
+│   └── Translations/           # TranslationApplier helper
+├── tests/                      # Pest + Testbench
+└── frontend/                   # NPM package (separate concern)
+```
+
 ## Out of scope
 
-- AdminUser auth (the `admin.auth` middleware is host-defined).
-- Admin shell UI pages — the package owns types + API + hooks; hosts own JSX/styling.
+- AdminUser auth (the `admin.auth` middleware alias is host-defined).
 - Tenant model — pluggable via `config('access.tenant_model')`.
-- Spatie permission package — currently a hard dependency; will become opt-in in PR 5.
+- v1.0 still hard-requires `spatie/laravel-permission`. v2.0 will fully decouple.

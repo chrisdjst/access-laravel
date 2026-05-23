@@ -2,7 +2,138 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [1.0.0] - Unreleased
+## [2.0.0] - Unreleased
+
+Second major. Spatie is now fully optional, `$user->can('events.view')` works without it via the new `HasAccessPermissions` trait, the audit log is automated, and the package ships a turn-key admin policy plus operational console commands.
+
+### Highlights
+
+- **Spatie hard requirement dropped.** `spatie/laravel-permission` is now in `suggest`. Hosts can install + run the package with **zero** Spatie footprint.
+- **`HasAccessPermissions` trait** — drop on the host User model and `$user->can('events.view')` works through the package's own schema + a `Gate::before` callback registered by the ServiceProvider.
+- **Audit log auto-populated.** Every domain event flows through `AuditingListener` → `access_audit_log` with actor + tenant context. Query via `GET /api/admin/audit` or `php artisan access:audit`.
+- **`AccessAdminPolicy`** — single Gate::before for the package's `admin.*` abilities. No more host-side `Gate::define()` boilerplate.
+- **Console commands** — `access:diagnose`, `access:sync-spatie`, `access:audit`.
+- **`TenantContext` port + `LaravelTenantContext` adapter** — use-cases can default to the current tenant from a container binding.
+- **Read models** — `GetRolePermissionMatrix` + `ListUserAccessibleModules` replace the inline `enrich()` N+1 queries the v1 controllers did.
+
+### Breaking changes vs. v1.x
+
+#### Spatie
+- `ModularizeRbac\Laravel\Models\Role` no longer extends `Spatie\Permission\Models\Role`.
+- `ModularizeRbac\Laravel\Models\Permission` no longer extends `Spatie\Permission\Models\Permission`.
+- `$role->givePermissionTo()` / `$role->revokePermissionTo()` / `$role->permissions` (Spatie's relation) — **gone**. Use `$role->users()`, `$role->rolePermissions()`, or `\Spatie\Permission\Models\Role::find($id)` if Spatie is installed.
+- `spatie/laravel-permission` moved from `require` to `suggest` in `composer.json`.
+
+#### Migrations
+- The legacy migration `2026_03_11_003000_create_permission_tables.php` (depended on `config('permission.*')`) is **deleted**. Replaced by `2026_06_01_000000_create_access_permission_tables.php` (idempotent, no Spatie config dependency).
+- New migrations:
+  - `2026_06_01_000010_create_role_user.php` — pivot the `HasAccessPermissions` trait reads.
+  - `2026_06_01_000020_create_access_audit_log.php` — audit log.
+
+#### Middleware default
+- `config('access.middleware')` default changed from `['api', 'auth:sanctum', 'admin.auth']` to `['api', 'auth:sanctum']`. The `admin.auth` alias is **opt-in** now — hosts that relied on it need to add it back to the config (or to specific routes).
+
+#### Config
+- New keys: `access.audit.enabled`, `access.policies.admin`.
+- `spatie.enabled` now defaults to `null` (auto-detect).
+
+### Added
+
+- `Modularize\Core\Application\Ports\TenantContext` (consumed via the new `LaravelTenantContext` adapter).
+- `Modularize\Core\Application\Ports\UserRoleResolver` (consumed via `EloquentUserRoleResolver`).
+- `Modularize\Core\Application\Ports\AuditRepository` (consumed via `EloquentAuditRepository`).
+- `Modularize\Core\Domain\Audit\AuditEntry` + `AuditEventName` value object.
+- `Modularize\Core\Application\Audit\ListAuditEntries` use-case.
+- `Modularize\Core\Application\Role\GetRolePermissionMatrix` use-case.
+- `Modularize\Core\Application\Module\ListUserAccessibleModules` use-case.
+- `ModularizeRbac\Laravel\Concerns\HasAccessPermissions` trait.
+- `ModularizeRbac\Laravel\Authorization\AccessAdminPolicy`.
+- `ModularizeRbac\Laravel\Audit\AuditingListener`.
+- `ModularizeRbac\Laravel\Console\{DiagnoseCommand, SyncSpatieCommand, AuditCommand}`.
+- `ModularizeRbac\Laravel\Tenant\LaravelTenantContext`.
+- New route: `GET /api/admin/audit`.
+
+### Upgrade from v1.x — step-by-step
+
+These steps assume a host that's running `modularize-rbac/laravel ^1.1`.
+
+1. **Bump the dependency.**
+   ```bash
+   composer require modularize-rbac/laravel:^2.0
+   ```
+
+2. **Publish the new config** (or merge manually). The middleware default + new `audit` / `policies` blocks need to land:
+   ```bash
+   php artisan vendor:publish --tag=access-config --force
+   ```
+   If the host customized `config/access.php`, diff and merge manually.
+
+3. **Migrate.** The new migrations are idempotent via `Schema::hasTable` guards — existing tables stay intact.
+   ```bash
+   php artisan migrate
+   ```
+
+4. **(If host customized Role / Permission models)** Stop extending `Spatie\Permission\Models\Role` / `Spatie\Permission\Models\Permission`. Use plain `Eloquent\Model` and copy any methods you need from the v2 package models. **`givePermissionTo()` / `revokePermissionTo()` on the host's Role break** — call them on `Spatie\Permission\Models\Role::find($id)` if Spatie remains installed, or use the package's own pivot via `RoleModulePermission`.
+
+5. **Add the trait to your User.**
+   ```php
+   use ModularizeRbac\Laravel\Concerns\HasAccessPermissions;
+
+   class User extends Authenticatable
+   {
+       use HasAccessPermissions;
+   }
+   ```
+
+6. **Wire user→role assignments via the new pivot.** If the host previously used Spatie's `model_has_roles`, migrate rows into `role_user`:
+   ```sql
+   INSERT INTO role_user (role_id, user_id, organization_id, created_at, updated_at)
+   SELECT role_id, model_id, organization_id, NOW(), NOW()
+   FROM model_has_roles WHERE model_type = 'App\\Models\\User';
+   ```
+
+7. **Decide on Spatie sync.** Keep `spatie/laravel-permission` installed if any code still uses `$user->hasRole(...)` etc. through Spatie's `HasRoles` trait. The package keeps `role_has_permissions` in sync as long as `config('access.spatie.enabled')` is `null` (auto) or `true`. To drop Spatie entirely, uninstall it and set the flag to `false` (or omit it — null + Spatie absent = sync off).
+
+8. **Decide on the admin policy.** v2.0 binds `AccessAdminPolicy` to `Gate::before` for `admin.*` abilities by default. Hosts that wired `Gate::define()` manually for `admin.modules.view` etc. can either:
+   - Keep the default policy and seed `admin.*` modules + bindings, or
+   - Set `config('access.policies.admin')` to `null` and continue with their `Gate::define()` calls.
+
+9. **Re-sync into Spatie (optional).** If staying on Spatie, run a one-shot resync to reconcile any drift:
+   ```bash
+   php artisan access:sync-spatie --dry-run   # inspect
+   php artisan access:sync-spatie             # apply
+   ```
+
+10. **Diagnose.**
+    ```bash
+    php artisan access:diagnose
+    ```
+
+### Compatibility matrix
+
+| Scenario | v1.x | v2.0 |
+|---|---|---|
+| Install without Spatie | ❌ hard require | ✅ supported |
+| `$user->can('events.view')` without Spatie | ❌ | ✅ via `HasAccessPermissions` |
+| Audit log of domain events | manual | ✅ automatic |
+| `admin.modules.view` etc. | `Gate::define()` per ability | `AccessAdminPolicy` covers all |
+| Tenant resolution | host code | `TenantContext` port |
+| Console diagnostics | none | ✅ `access:diagnose` |
+| Spatie `role_has_permissions` sync | observer (eager) | `SpatiePermissionGateway` (event-driven) |
+
+---
+
+## [1.1.0] - 2026-05-23
+
+Additive only — no breaking changes vs. v1.0.
+
+### Added (via `modularize-rbac/core` v1.1.0 bump)
+- `TenantContext` port.
+- `Audit` domain (entity + VO + repository port + `ListAuditEntries` use-case).
+- Read models: `GetRolePermissionMatrix`, `ListUserAccessibleModules`.
+- `UserRoleResolver` port.
+
+## [1.0.0] - 2026-05-23
 
 First publishable Packagist release. Hexagonal refactor split across PRs 0-6.
 
@@ -10,53 +141,21 @@ First publishable Packagist release. Hexagonal refactor split across PRs 0-6.
 
 #### Naming
 - Package renamed from `casamento/rbac` to `modularize-rbac/laravel`.
-- Namespace `Casamento\Rbac\*` â†’ `ModularizeRbac\Laravel\*`.
-- ServiceProvider: `RbacServiceProvider` â†’ `AccessServiceProvider`.
-- Config file: `config/rbac.php` â†’ `config/access.php`. Publish tag is now `access-config`.
+- Namespace `Casamento\Rbac\*` → `ModularizeRbac\Laravel\*`.
+- ServiceProvider: `RbacServiceProvider` → `AccessServiceProvider`.
+- Config file: `config/rbac.php` → `config/access.php`. Publish tag is now `access-config`.
 - Config keys moved from `config('rbac.*')` to `config('access.*')`.
 
 #### Architecture
 - The framework-agnostic core (entities, value objects, domain services, use-cases, ports) lives in a separate package: [`modularize-rbac/core`](https://github.com/chrisdjst/access-core).
-- This package is a thin Laravel bridge: it implements the core's ports with Eloquent, exposes HTTP controllers, registers migrations and routes.
-- `RoleModulePermissionObserver` removed â€” its sync algorithm now lives in `ModularizeRbac\Core\Domain\RoleModulePermission\RoleModulePermissionSynchronizer` (pure-function domain service) and runs inside the `SyncRoleModules` use-case.
-- `Concerns\HasUuid` and `Concerns\HasTranslations` traits removed â€” UUID generation goes through the `IdGenerator` port; translation lookup goes through the `TranslationResolver` domain service.
+- This package is a thin Laravel bridge.
+- `RoleModulePermissionObserver`, `Concerns\HasUuid`, `Concerns\HasTranslations` removed.
 
 #### REST API
-- URLs and verbs are unchanged from 0.1.0; response shapes preserved for `Module`, `Role`, `Language` resources.
-- Validation errors now return 422 with a `field`-keyed error map.
-- Authorization failures return 403 via a registered `renderable` (mapping `AuthorizationFailed` domain exception).
-- Not-found IDs return 404 via the same mechanism.
-
-### Added
-- **Ports**: `ModuleRepository`, `RoleRepository`, `PermissionRepository`, `LanguageRepository`, `TranslationRepository`, `RoleModulePermissionRepository`, `UnitOfWork`, `DomainEventDispatcher`, `LocaleResolver`, `Authorizer`, `ExternalPermissionGateway`.
-- **Adapters**:
-  - `Eloquent/Repositories/Eloquent*Repository` implementing each `*Repository` port.
-  - `Persistence/SystemClock`, `Persistence/UuidV4IdGenerator`, `Persistence/LaravelUnitOfWork`.
-  - `Localization/LaravelLocaleResolver`.
-  - `Events/LaravelEventDispatcher`.
-  - `Authorization/GateAuthorizer`.
-  - `Spatie/SpatiePermissionGateway` (opt-in) + `Spatie/NullExternalPermissionGateway` (default when sync disabled).
-- **Translation HTTP layer**: `Translations/TranslationApplier` converts the legacy `translations[]` payload into per-(field, locale) repository operations.
-- **Config flag**: `access.spatie.enabled` to control whether the SyncRoleModules use-case replicates to Spatie's `role_has_permissions`.
-- **CI**: `.github/workflows/ci.yml` matrix PHP 8.2/8.3/8.4 Ã— Laravel 11/12.
-- **Tests**: 15 integration + feature tests via Orchestra Testbench (SQLite in-memory).
-
-### Fixed
-- Removed hardcoded `"version": "0.1.0"` from `composer.json` â€” Packagist resolves versions from Git tags.
-- Removed dead PSR-4 autoload entry pointing at non-existent `database/factories/`.
-- BOMs accidentally introduced by PowerShell-based namespace rename stripped from all PHP files.
-
-### Release order (one-time)
-
-The `modularize-rbac/core` constraint in `composer.json` is `*@dev` during initial publication because access-core hasn't been tagged v1.0.0 on Packagist yet. The release ritual is:
-
-1. Tag `access-core` v1.0.0 â†’ submit to Packagist.
-2. Tighten this constraint to `^1.0` and remove the `repositories.path` block in a follow-up PR.
-3. Tag `access-laravel` v1.0.0 â†’ submit to Packagist.
-
-### Roadmap
-
-- **v2.0**: fully decouple `Role` and `Permission` Eloquent models from `Spatie\Permission\Models\*`. v1.0 still hard-requires `spatie/laravel-permission` even when the sync flag is off.
+- URLs and verbs unchanged; response shapes preserved.
+- Validation errors return 422 with a field-keyed error map.
+- Authorization failures return 403.
+- Not-found IDs return 404.
 
 ## [0.1.0] - 2026-04-23
 

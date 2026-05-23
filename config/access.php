@@ -110,4 +110,20 @@ return [
     'audit' => [
         'enabled' => true,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Policies
+    |--------------------------------------------------------------------------
+    |
+    | Policy class registered as `Gate::before` for the package's
+    | admin.* abilities. Default {@see \ModularizeRbac\Laravel\Authorization\AccessAdminPolicy}
+    | delegates to the user's canAccess() (provided by the
+    | HasAccessPermissions trait). Hosts can point this at their own
+    | class for a custom mapping, or set to null to opt out entirely
+    | and wire abilities by hand via Gate::define().
+    */
+    'policies' => [
+        'admin' => \ModularizeRbac\Laravel\Authorization\AccessAdminPolicy::class,
+    ],
 ];

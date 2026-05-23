@@ -2,9 +2,9 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.0.1] - Unreleased
+## [2.0.1] - 2026-05-23
 
-Hotfix: clean up dead config keys + emit logs for silenced infrastructure failures.
+Hotfix release: clean up dead config keys, emit logs for silenced infrastructure failures, and close test-coverage gaps in the v2.0 adapters.
 
 ### Removed
 - `access.admin_team_id` and `access.translations_enabled` from `config/access.php` — both were declared in v1 but never consulted in the package code. If your host published the config and read these keys directly (rare), drop the references.
@@ -16,6 +16,7 @@ Hotfix: clean up dead config keys + emit logs for silenced infrastructure failur
 
 ### Added
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `.github/PULL_REQUEST_TEMPLATE.md`.
+- Integration tests for `EloquentUserRoleResolver`, `LaravelTenantContext`, `LaravelLocaleResolver`, and `TranslationApplier` (18 new test cases, suite total 60).
 
 ## [2.0.0] - 2026-05-23
 

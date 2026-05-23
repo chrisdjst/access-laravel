@@ -18,6 +18,12 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 
 - `RoleController` constructor signature widened to inject the new use-cases (`CreateRole`, `DeleteRole`, `GetRolePermissionMatrix`). Hosts that replaced the controller with a subclass need to thread the new dependencies through.
 - `composer.json` requires `modularize-rbac/core: ^1.2` (additive bump).
+- `SyncRoleModulesRequest`: switched `modules` from `required, array` to `present, array` (empty arrays are accepted — needed for the "drop all bindings" flow before deleting a role). Each entry must now be an `array` (rejects scalars like `42` or `"x"`).
+- `StoreLanguageRequest` / `UpdateLanguageRequest`: when `config('access.allowed_locales')` is a non-empty list, language `code` submissions must match an entry. Empty / unset config preserves the previous behavior (any code accepted).
+
+### Added (continued)
+
+- New optional config key `access.allowed_locales` — whitelist for language `code` submissions. Defaults to `[]` (accept all).
 
 ## [2.0.1] - 2026-05-23
 

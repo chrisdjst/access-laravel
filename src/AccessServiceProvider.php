@@ -177,7 +177,7 @@ class AccessServiceProvider extends ServiceProvider
             : ($configured === true && $spatieAvailable);
 
         return $enabled
-            ? new SpatiePermissionGateway()
+            ? new SpatiePermissionGateway($this->app->make(ConnectionResolverInterface::class)->connection())
             : new NullExternalPermissionGateway();
     }
 }

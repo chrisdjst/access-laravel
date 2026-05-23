@@ -26,12 +26,15 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.0|^12.0",
-        "modularize-rbac/core": "^1.0",
-        "spatie/laravel-permission": "^6.24"
+        "modularize-rbac/core": "^1.1"
     },
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.0",
-        "pestphp/pest": "^3.8"
+        "pestphp/pest": "^3.8",
+        "spatie/laravel-permission": "^6.24"
+    },
+    "suggest": {
+        "spatie/laravel-permission": "^6.0 — opt-in adapter that mirrors permissions into Spatie's `role_has_permissions` pivot so hosts using the HasRoles trait keep working with `$user->can()`. Enable via `config('access.spatie.enabled')`."
     },
     "autoload": {
         "psr-4": {

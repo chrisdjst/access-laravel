@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
 use ModularizeRbac\Core\Application\Ports\RoleModulePermissionRepository;
+use ModularizeRbac\Core\Application\Role\GetRolePermissionMatrix\RolePermissionMatrixRow;
 use ModularizeRbac\Core\Domain\Module\ModulePermission as DomainModulePermission;
 use ModularizeRbac\Core\Domain\RoleModulePermission\RoleModulePermission as DomainRMP;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Eloquent\Mappers\ModuleMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\ModulePermissionMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\RoleModulePermissionMapper;
 use ModularizeRbac\Laravel\Models\ModulePermission as ModulePermissionEloquent;
@@ -18,6 +20,7 @@ final class EloquentRoleModulePermissionRepository implements RoleModulePermissi
     public function __construct(
         private readonly RoleModulePermissionMapper $bindings,
         private readonly ModulePermissionMapper $permissions,
+        private readonly ModuleMapper $modules,
     ) {
     }
 
@@ -37,6 +40,28 @@ final class EloquentRoleModulePermissionRepository implements RoleModulePermissi
                 'binding' => $this->bindings->toDomain($row),
                 'permission' => $this->permissions->toDomain($row->permission),
             ];
+        }
+
+        return $rows;
+    }
+
+    public function matrixFor(Uuid $roleId): array
+    {
+        $models = RMPEloquent::query()
+            ->with(['permission', 'module'])
+            ->where('role_id', $roleId->value)
+            ->get();
+
+        $rows = [];
+        foreach ($models as $row) {
+            if ($row->permission === null || $row->module === null) {
+                continue;
+            }
+            $rows[] = new RolePermissionMatrixRow(
+                binding: $this->bindings->toDomain($row),
+                permission: $this->permissions->toDomain($row->permission),
+                module: $this->modules->toDomain($row->module),
+            );
         }
 
         return $rows;

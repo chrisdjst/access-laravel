@@ -4,27 +4,32 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Models;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
-use Spatie\Permission\Models\Role as SpatieRole;
 
 /**
- * Persistence-only Eloquent model. The business surface (display
- * name change, tenant scoping invariants) lives in
- * {@see \ModularizeRbac\Core\Domain\Role\Role}; this class is a row
- * holder that still extends Spatie's Role so Spatie can resolve
- * roles by name through its own infrastructure.
+ * Persistence-only Eloquent model for roles.
  *
- * PR 5 makes the Spatie dependency opt-in; if and when Spatie is
- * absent, this class will fall back to extending plain Eloquent
- * Model. The migration covering that swap is part of PR 5.
+ * v2.0 stopped extending {@see \Spatie\Permission\Models\Role}: the
+ * package owns the schema and lifecycle. Hosts that still want
+ * Spatie sync get it via the optional `SpatiePermissionGateway`,
+ * which looks up by id rather than depending on the model
+ * inheritance.
+ *
+ * Business surface lives in {@see \ModularizeRbac\Core\Domain\Role\Role};
+ * this class is a row holder mapped to/from the domain entity by
+ * {@see \ModularizeRbac\Laravel\Eloquent\Mappers\RoleMapper}.
  */
-class Role extends SpatieRole
+class Role extends Model
 {
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    protected $table = 'roles';
 
     protected $fillable = [
         'name',
@@ -44,8 +49,6 @@ class Role extends SpatieRole
     }
 
     /**
-     * The owning tenant (organization / account / workspace) for this role.
-     *
      * @return BelongsTo<\Illuminate\Database\Eloquent\Model, $this>
      */
     public function tenant(): BelongsTo
@@ -67,5 +70,33 @@ class Role extends SpatieRole
     public function rolePermissions(): HasMany
     {
         return $this->hasMany(RoleModulePermission::class, 'role_id');
+    }
+
+    /**
+     * Direct permissions held by this role through the package's own
+     * `role_module_permission` schema. Returns a query you can
+     * iterate or count. Replaces what Spatie's `permissions` relation
+     * used to do in v1.
+     *
+     * @return HasMany<RoleModulePermission, $this>
+     */
+    public function permissions(): HasMany
+    {
+        return $this->rolePermissions();
+    }
+
+    /**
+     * Users assigned to this role via the `role_user` pivot
+     * introduced in v2.0 (PR V2.4 adds the migration). Host's user
+     * class is read from `config('access.user_model')`.
+     *
+     * @return BelongsToMany<\Illuminate\Database\Eloquent\Model, $this>
+     */
+    public function users(): BelongsToMany
+    {
+        /** @var class-string<\Illuminate\Database\Eloquent\Model> $userModel */
+        $userModel = (string) config('access.user_model', 'App\\Models\\User');
+
+        return $this->belongsToMany($userModel, 'role_user', 'role_id', 'user_id');
     }
 }

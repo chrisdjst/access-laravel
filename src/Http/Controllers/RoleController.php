@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
 use ModularizeRbac\Core\Application\Ports\LanguageRepository;
 use ModularizeRbac\Core\Application\Ports\RoleModulePermissionRepository;
 use ModularizeRbac\Core\Application\Ports\TranslationRepository;
+use ModularizeRbac\Core\Application\Role\CreateRole\CreateRole;
+use ModularizeRbac\Core\Application\Role\CreateRole\CreateRoleInput;
+use ModularizeRbac\Core\Application\Role\DeleteRole\DeleteRole;
+use ModularizeRbac\Core\Application\Role\GetRolePermissionMatrix\GetRolePermissionMatrix;
 use ModularizeRbac\Core\Application\Role\ListRoles\ListRoles;
 use ModularizeRbac\Core\Application\Role\RoleOutput;
 use ModularizeRbac\Core\Application\Role\ShowRole\ShowRole;
@@ -18,9 +23,11 @@ use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModulesInput;
 use ModularizeRbac\Core\Application\Role\UpdateRole\UpdateRole;
 use ModularizeRbac\Core\Application\Role\UpdateRole\UpdateRoleInput;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Http\Requests\StoreRoleRequest;
 use ModularizeRbac\Laravel\Http\Requests\SyncRoleModulesRequest;
 use ModularizeRbac\Laravel\Http\Requests\UpdateRoleRequest;
 use ModularizeRbac\Laravel\Http\Resources\RoleResource;
+use ModularizeRbac\Laravel\Http\Resources\RolePermissionMatrixResource;
 use ModularizeRbac\Laravel\Translations\TranslationApplier;
 
 /**
@@ -33,8 +40,11 @@ class RoleController extends Controller
     public function __construct(
         private readonly ListRoles $listRoles,
         private readonly ShowRole $showRole,
+        private readonly CreateRole $createRoleUseCase,
         private readonly UpdateRole $updateRoleUseCase,
+        private readonly DeleteRole $deleteRoleUseCase,
         private readonly SyncRoleModules $syncRoleModules,
+        private readonly GetRolePermissionMatrix $rolePermissionMatrix,
         private readonly TranslationApplier $translations,
         private readonly TranslationRepository $translationRepository,
         private readonly LanguageRepository $languageRepository,
@@ -59,6 +69,40 @@ class RoleController extends Controller
     public function show(string $role): RoleResource
     {
         return new RoleResource($this->enrich($this->showRole->execute($role)));
+    }
+
+    public function store(StoreRoleRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+        $payloadTranslations = $data['translations'] ?? null;
+        unset($data['translations']);
+
+        $output = $this->createRoleUseCase->execute(new CreateRoleInput(
+            name: (string) $data['name'],
+            displayName: $data['display_name'] ?? null,
+            guard: (string) $data['guard_name'],
+            tenantId: $data['organization_id'] ?? null,
+            level: (int) ($data['level'] ?? 0),
+            isSystem: (bool) ($data['is_system'] ?? false),
+        ));
+
+        if (is_array($payloadTranslations)) {
+            $this->translations->apply('role', new Uuid($output->id), $payloadTranslations);
+        }
+
+        return (new RoleResource($this->enrich($output)))->response()->setStatusCode(201);
+    }
+
+    public function destroy(string $role): JsonResponse
+    {
+        $this->deleteRoleUseCase->execute($role);
+
+        return response()->json(null, 204);
+    }
+
+    public function permissionMatrix(string $role): RolePermissionMatrixResource
+    {
+        return new RolePermissionMatrixResource($this->rolePermissionMatrix->execute($role));
     }
 
     public function update(UpdateRoleRequest $request, string $role): RoleResource

@@ -52,4 +52,26 @@ final class EloquentRoleRepository implements RoleRepository
         $model->saveQuietly();
         $model->timestamps = true;
     }
+
+    public function delete(DomainRole $role): void
+    {
+        RoleEloquent::query()->whereKey($role->id->value)->delete();
+    }
+
+    public function findByName(string $name, GuardName $guard, ?Uuid $tenantId): ?DomainRole
+    {
+        $query = RoleEloquent::query()
+            ->where('name', $name)
+            ->where('guard_name', $guard->value);
+
+        if ($tenantId === null) {
+            $query->whereNull('organization_id');
+        } else {
+            $query->where('organization_id', $tenantId->value);
+        }
+
+        $model = $query->first();
+
+        return $model !== null ? $this->mapper->toDomain($model) : null;
+    }
 }

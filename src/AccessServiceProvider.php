@@ -50,6 +50,7 @@ use Modularize\Access\Laravel\Persistence\LaravelUnitOfWork;
 use Modularize\Access\Laravel\Persistence\SystemClock;
 use Modularize\Access\Laravel\Persistence\UuidV4IdGenerator;
 use Modularize\Access\Laravel\Spatie\NullExternalPermissionGateway;
+use Modularize\Access\Laravel\Spatie\SpatiePermissionGateway;
 
 class AccessServiceProvider extends ServiceProvider
 {
@@ -127,10 +128,9 @@ class AccessServiceProvider extends ServiceProvider
             );
         });
 
-        // PR 5 will replace this binding with a real
-        // SpatiePermissionGateway when spatie/laravel-permission is
-        // installed and `access.spatie.enabled` is true.
-        $this->app->singleton(ExternalPermissionGateway::class, NullExternalPermissionGateway::class);
+        $this->app->singleton(ExternalPermissionGateway::class, function (): ExternalPermissionGateway {
+            return $this->resolveExternalPermissionGateway();
+        });
     }
 
     protected function registerRepositories(): void
@@ -156,5 +156,28 @@ class AccessServiceProvider extends ServiceProvider
         Route::prefix((string) config('access.route_prefix', 'admin'))
             ->middleware((array) config('access.middleware', ['auth:sanctum']))
             ->group(__DIR__.'/../routes/api.php');
+    }
+
+    /**
+     * Pick the right ExternalPermissionGateway based on whether
+     * spatie/laravel-permission is installed AND the host has not
+     * explicitly disabled the integration via config.
+     *
+     * Defaults: enabled when Spatie's PermissionRegistrar class is
+     * available, disabled otherwise. Hosts can force off (or force
+     * on with a custom gateway by overriding the binding) via
+     * `config('access.spatie.enabled')`.
+     */
+    protected function resolveExternalPermissionGateway(): ExternalPermissionGateway
+    {
+        $spatieAvailable = class_exists(\Spatie\Permission\PermissionRegistrar::class);
+        $configured = config('access.spatie.enabled');
+        $enabled = $configured === null
+            ? $spatieAvailable
+            : ($configured === true && $spatieAvailable);
+
+        return $enabled
+            ? new SpatiePermissionGateway()
+            : new NullExternalPermissionGateway();
     }
 }

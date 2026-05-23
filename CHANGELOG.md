@@ -2,7 +2,22 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.0.0] - Unreleased
+## [2.0.1] - Unreleased
+
+Hotfix: clean up dead config keys + emit logs for silenced infrastructure failures.
+
+### Removed
+- `access.admin_team_id` and `access.translations_enabled` from `config/access.php` — both were declared in v1 but never consulted in the package code. If your host published the config and read these keys directly (rare), drop the references.
+
+### Changed
+- `AuditingListener` now logs at `warning` level when an audit entry fails to persist, instead of failing silently. The main domain flow still completes — auditing is best-effort.
+- `LaravelTenantContext` logs at `warning` level when the container's tenant binding holds a non-UUID value. Previously the malformed value was swallowed without trace.
+- `HasAccessPermissions::canAccess()` retains its silent `return false` for malformed ability strings (covered by an inline comment): the method is called for every `$user->can(...)` across the host app, including non-package abilities, so logging would flood the request log.
+
+### Added
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `.github/PULL_REQUEST_TEMPLATE.md`.
+
+## [2.0.0] - 2026-05-23
 
 Second major. Spatie is now fully optional, `$user->can('events.view')` works without it via the new `HasAccessPermissions` trait, the audit log is automated, and the package ships a turn-key admin policy plus operational console commands.
 

@@ -57,6 +57,14 @@ trait HasAccessPermissions
         try {
             $name = new PermissionName($ability);
         } catch (Throwable) {
+            // Not logged on purpose: this method is invoked by
+            // `Gate::before` for EVERY `$user->can(...)` call across
+            // the whole host app, including abilities that don't
+            // follow the `{slug}.{action}` convention (e.g.
+            // `view-dashboard`, `update-user-profile`). Treating them
+            // as "this package doesn't grant that" — i.e. returning
+            // false so Laravel's Gate continues — is the correct
+            // semantic. Logging would flood the request log.
             return false;
         }
 

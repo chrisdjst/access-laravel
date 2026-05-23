@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ModularizeRbac\Laravel\Audit;
 
 use DateTimeInterface;
+use Illuminate\Support\Facades\Log;
 use ModularizeRbac\Core\Application\Ports\AuditRepository;
 use ModularizeRbac\Core\Application\Ports\Authorizer;
 use ModularizeRbac\Core\Application\Ports\TenantContext;
@@ -62,11 +63,16 @@ final class AuditingListener
                 clock: $this->clock,
             );
             $this->repository->save($entry);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
             // The audit log is a side observability concern — never
-            // let a serialization quirk fail the main domain flow.
-            // Hosts wanting strict auditing should subscribe their
-            // own listener with stricter error handling.
+            // let a serialization quirk or transient DB failure crash
+            // the main domain flow. We still log so the issue is
+            // discoverable; hosts wanting hard failure should swap
+            // this listener for their own stricter version.
+            Log::warning('access: failed to record audit entry for domain event', [
+                'event_class' => $event::class,
+                'exception' => $e->getMessage(),
+            ]);
         }
     }
 

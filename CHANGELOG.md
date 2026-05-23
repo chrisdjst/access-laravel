@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `modularize/access-laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
+All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
 ## [1.0.0] - Unreleased
 
@@ -9,17 +9,17 @@ First publishable Packagist release. Hexagonal refactor split across PRs 0-6.
 ### Breaking changes vs. `casamento/rbac` 0.1.0
 
 #### Naming
-- Package renamed from `casamento/rbac` to `modularize/access-laravel`.
-- Namespace `Casamento\Rbac\*` → `Modularize\Access\Laravel\*`.
-- ServiceProvider: `RbacServiceProvider` → `AccessServiceProvider`.
-- Config file: `config/rbac.php` → `config/access.php`. Publish tag is now `access-config`.
+- Package renamed from `casamento/rbac` to `modularize-rbac/laravel`.
+- Namespace `Casamento\Rbac\*` â†’ `ModularizeRbac\Laravel\*`.
+- ServiceProvider: `RbacServiceProvider` â†’ `AccessServiceProvider`.
+- Config file: `config/rbac.php` â†’ `config/access.php`. Publish tag is now `access-config`.
 - Config keys moved from `config('rbac.*')` to `config('access.*')`.
 
 #### Architecture
-- The framework-agnostic core (entities, value objects, domain services, use-cases, ports) lives in a separate package: [`modularize/access-core`](https://github.com/chrisdjst/access-core).
+- The framework-agnostic core (entities, value objects, domain services, use-cases, ports) lives in a separate package: [`modularize-rbac/core`](https://github.com/chrisdjst/access-core).
 - This package is a thin Laravel bridge: it implements the core's ports with Eloquent, exposes HTTP controllers, registers migrations and routes.
-- `RoleModulePermissionObserver` removed — its sync algorithm now lives in `Modularize\Access\Domain\RoleModulePermission\RoleModulePermissionSynchronizer` (pure-function domain service) and runs inside the `SyncRoleModules` use-case.
-- `Concerns\HasUuid` and `Concerns\HasTranslations` traits removed — UUID generation goes through the `IdGenerator` port; translation lookup goes through the `TranslationResolver` domain service.
+- `RoleModulePermissionObserver` removed â€” its sync algorithm now lives in `ModularizeRbac\Core\Domain\RoleModulePermission\RoleModulePermissionSynchronizer` (pure-function domain service) and runs inside the `SyncRoleModules` use-case.
+- `Concerns\HasUuid` and `Concerns\HasTranslations` traits removed â€” UUID generation goes through the `IdGenerator` port; translation lookup goes through the `TranslationResolver` domain service.
 
 #### REST API
 - URLs and verbs are unchanged from 0.1.0; response shapes preserved for `Module`, `Role`, `Language` resources.
@@ -38,21 +38,21 @@ First publishable Packagist release. Hexagonal refactor split across PRs 0-6.
   - `Spatie/SpatiePermissionGateway` (opt-in) + `Spatie/NullExternalPermissionGateway` (default when sync disabled).
 - **Translation HTTP layer**: `Translations/TranslationApplier` converts the legacy `translations[]` payload into per-(field, locale) repository operations.
 - **Config flag**: `access.spatie.enabled` to control whether the SyncRoleModules use-case replicates to Spatie's `role_has_permissions`.
-- **CI**: `.github/workflows/ci.yml` matrix PHP 8.2/8.3/8.4 × Laravel 11/12.
+- **CI**: `.github/workflows/ci.yml` matrix PHP 8.2/8.3/8.4 Ã— Laravel 11/12.
 - **Tests**: 15 integration + feature tests via Orchestra Testbench (SQLite in-memory).
 
 ### Fixed
-- Removed hardcoded `"version": "0.1.0"` from `composer.json` — Packagist resolves versions from Git tags.
+- Removed hardcoded `"version": "0.1.0"` from `composer.json` â€” Packagist resolves versions from Git tags.
 - Removed dead PSR-4 autoload entry pointing at non-existent `database/factories/`.
 - BOMs accidentally introduced by PowerShell-based namespace rename stripped from all PHP files.
 
 ### Release order (one-time)
 
-The `modularize/access-core` constraint in `composer.json` is `*@dev` during initial publication because access-core hasn't been tagged v1.0.0 on Packagist yet. The release ritual is:
+The `modularize-rbac/core` constraint in `composer.json` is `*@dev` during initial publication because access-core hasn't been tagged v1.0.0 on Packagist yet. The release ritual is:
 
-1. Tag `access-core` v1.0.0 → submit to Packagist.
+1. Tag `access-core` v1.0.0 â†’ submit to Packagist.
 2. Tighten this constraint to `^1.0` and remove the `repositories.path` block in a follow-up PR.
-3. Tag `access-laravel` v1.0.0 → submit to Packagist.
+3. Tag `access-laravel` v1.0.0 â†’ submit to Packagist.
 
 ### Roadmap
 

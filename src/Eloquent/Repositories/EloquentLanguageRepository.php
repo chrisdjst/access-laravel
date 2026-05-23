@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Repositories;
+namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
-use Modularize\Access\Application\Ports\LanguageRepository;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Domain\Translation\Language as DomainLanguage;
-use Modularize\Access\Domain\Translation\LanguageCode;
-use Modularize\Access\Laravel\Eloquent\Mappers\LanguageMapper;
-use Modularize\Access\Laravel\Models\Language as LanguageEloquent;
+use ModularizeRbac\Core\Application\Ports\LanguageRepository;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Core\Domain\Translation\Language as DomainLanguage;
+use ModularizeRbac\Core\Domain\Translation\LanguageCode;
+use ModularizeRbac\Laravel\Eloquent\Mappers\LanguageMapper;
+use ModularizeRbac\Laravel\Models\Language as LanguageEloquent;
 
 final class EloquentLanguageRepository implements LanguageRepository
 {

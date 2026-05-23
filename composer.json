@@ -1,6 +1,6 @@
 {
-    "name": "modularize/access-laravel",
-    "description": "Laravel bridge for modularize/access-core: Eloquent repositories, HTTP controllers, migrations, and optional Spatie permissions adapter.",
+    "name": "modularize-rbac/laravel",
+    "description": "Laravel bridge for modularize-rbac/core: Eloquent repositories, HTTP controllers, migrations, and optional Spatie permissions adapter.",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -26,7 +26,7 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.0|^12.0",
-        "modularize/access-core": "*@dev",
+        "modularize-rbac/core": "*@dev",
         "spatie/laravel-permission": "^6.24"
     },
     "require-dev": {
@@ -42,18 +42,18 @@
     ],
     "autoload": {
         "psr-4": {
-            "Modularize\\Access\\Laravel\\": "src/"
+            "ModularizeRbac\\Laravel\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Modularize\\Access\\Laravel\\Tests\\": "tests/"
+            "ModularizeRbac\\Laravel\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Modularize\\Access\\Laravel\\AccessServiceProvider"
+                "ModularizeRbac\\Laravel\\AccessServiceProvider"
             ]
         }
     },

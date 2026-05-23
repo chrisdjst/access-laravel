@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Repositories;
+namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
-use Modularize\Access\Application\Ports\ModuleRepository;
-use Modularize\Access\Domain\Module\Module as DomainModule;
-use Modularize\Access\Domain\Module\ModuleSlug;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Eloquent\Mappers\ModuleMapper;
-use Modularize\Access\Laravel\Models\Module as ModuleEloquent;
+use ModularizeRbac\Core\Application\Ports\ModuleRepository;
+use ModularizeRbac\Core\Domain\Module\Module as DomainModule;
+use ModularizeRbac\Core\Domain\Module\ModuleSlug;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Eloquent\Mappers\ModuleMapper;
+use ModularizeRbac\Laravel\Models\Module as ModuleEloquent;
 
 final class EloquentModuleRepository implements ModuleRepository
 {

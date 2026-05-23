@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Repositories;
+namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
-use Modularize\Access\Application\Ports\TranslationRepository;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Domain\Translation\Translation as DomainTranslation;
-use Modularize\Access\Laravel\Eloquent\Mappers\TranslationMapper;
-use Modularize\Access\Laravel\Models\Translation as TranslationEloquent;
+use ModularizeRbac\Core\Application\Ports\TranslationRepository;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Core\Domain\Translation\Translation as DomainTranslation;
+use ModularizeRbac\Laravel\Eloquent\Mappers\TranslationMapper;
+use ModularizeRbac\Laravel\Models\Translation as TranslationEloquent;
 
 final class EloquentTranslationRepository implements TranslationRepository
 {

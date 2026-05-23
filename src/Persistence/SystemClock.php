@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Persistence;
+namespace ModularizeRbac\Laravel\Persistence;
 
 use DateTimeImmutable;
-use Modularize\Access\Domain\Shared\Clock;
+use ModularizeRbac\Core\Domain\Shared\Clock;
 
 /**
  * Default {@see Clock} adapter using PHP's system time. The bridge

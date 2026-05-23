@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Authorization;
+namespace ModularizeRbac\Laravel\Authorization;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Auth\Access\Gate;
-use Modularize\Access\Application\Ports\Authorizer;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Exceptions\AuthorizationFailed;
+use ModularizeRbac\Core\Application\Ports\Authorizer;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Core\Exceptions\AuthorizationFailed;
 
 /**
  * {@see Authorizer} adapter that delegates ability checks to

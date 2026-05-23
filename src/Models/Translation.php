@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Models;
+namespace ModularizeRbac\Laravel\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

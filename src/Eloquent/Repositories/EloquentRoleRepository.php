@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Eloquent\Repositories;
+namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
-use Modularize\Access\Application\Ports\RoleRepository;
-use Modularize\Access\Domain\Role\GuardName;
-use Modularize\Access\Domain\Role\Role as DomainRole;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Eloquent\Mappers\RoleMapper;
-use Modularize\Access\Laravel\Models\Role as RoleEloquent;
+use ModularizeRbac\Core\Application\Ports\RoleRepository;
+use ModularizeRbac\Core\Domain\Role\GuardName;
+use ModularizeRbac\Core\Domain\Role\Role as DomainRole;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Eloquent\Mappers\RoleMapper;
+use ModularizeRbac\Laravel\Models\Role as RoleEloquent;
 
 final class EloquentRoleRepository implements RoleRepository
 {

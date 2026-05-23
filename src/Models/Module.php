@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Models;
+namespace ModularizeRbac\Laravel\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,12 +12,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Persistence-only Eloquent model. Business invariants and lifecycle
- * events live in {@see \Modularize\Access\Domain\Module\Module}; this
+ * events live in {@see \ModularizeRbac\Core\Domain\Module\Module}; this
  * class is a thin row holder mapped to and from the domain entity by
- * {@see \Modularize\Access\Laravel\Eloquent\Mappers\ModuleMapper}.
+ * {@see \ModularizeRbac\Laravel\Eloquent\Mappers\ModuleMapper}.
  *
  * Identifier generation lives in the
- * {@see \Modularize\Access\Domain\Shared\IdGenerator} port — the
+ * {@see \ModularizeRbac\Core\Domain\Shared\IdGenerator} port — the
  * Eloquent layer no longer auto-generates UUIDs on `creating`.
  */
 class Module extends Model

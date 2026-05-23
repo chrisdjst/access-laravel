@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Http\Resources;
+namespace ModularizeRbac\Laravel\Http\Resources;
 
 use DateTimeInterface;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modularize\Access\Application\Role\RoleOutput;
+use ModularizeRbac\Core\Application\Role\RoleOutput;
 
 /**
  * Wraps a {@see RoleOutput} plus the enrichment fetched by the

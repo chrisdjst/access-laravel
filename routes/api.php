@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Modularize\Access\Laravel\Http\Controllers\LanguageController;
-use Modularize\Access\Laravel\Http\Controllers\ModuleController;
-use Modularize\Access\Laravel\Http\Controllers\RoleController;
+use ModularizeRbac\Laravel\Http\Controllers\LanguageController;
+use ModularizeRbac\Laravel\Http\Controllers\ModuleController;
+use ModularizeRbac\Laravel\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
 /*

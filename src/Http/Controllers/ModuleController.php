@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Http\Controllers;
+namespace ModularizeRbac\Laravel\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
-use Modularize\Access\Application\Module\CreateModule\CreateModule;
-use Modularize\Access\Application\Module\CreateModule\CreateModuleInput;
-use Modularize\Access\Application\Module\DeleteModule\DeleteModule;
-use Modularize\Access\Application\Module\ListModules\ListModules;
-use Modularize\Access\Application\Module\ModuleOutput;
-use Modularize\Access\Application\Module\ShowModule\ShowModule;
-use Modularize\Access\Application\Module\UpdateModule\UpdateModule;
-use Modularize\Access\Application\Module\UpdateModule\UpdateModuleInput;
-use Modularize\Access\Application\Ports\LanguageRepository;
-use Modularize\Access\Application\Ports\TranslationRepository;
-use Modularize\Access\Domain\Shared\Uuid;
-use Modularize\Access\Laravel\Http\Requests\StoreModuleRequest;
-use Modularize\Access\Laravel\Http\Requests\UpdateModuleRequest;
-use Modularize\Access\Laravel\Http\Resources\ModuleResource;
-use Modularize\Access\Laravel\Models\ModulePrice as ModulePriceEloquent;
-use Modularize\Access\Laravel\Translations\TranslationApplier;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModule;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModuleInput;
+use ModularizeRbac\Core\Application\Module\DeleteModule\DeleteModule;
+use ModularizeRbac\Core\Application\Module\ListModules\ListModules;
+use ModularizeRbac\Core\Application\Module\ModuleOutput;
+use ModularizeRbac\Core\Application\Module\ShowModule\ShowModule;
+use ModularizeRbac\Core\Application\Module\UpdateModule\UpdateModule;
+use ModularizeRbac\Core\Application\Module\UpdateModule\UpdateModuleInput;
+use ModularizeRbac\Core\Application\Ports\LanguageRepository;
+use ModularizeRbac\Core\Application\Ports\TranslationRepository;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Http\Requests\StoreModuleRequest;
+use ModularizeRbac\Laravel\Http\Requests\UpdateModuleRequest;
+use ModularizeRbac\Laravel\Http\Resources\ModuleResource;
+use ModularizeRbac\Laravel\Models\ModulePrice as ModulePriceEloquent;
+use ModularizeRbac\Laravel\Translations\TranslationApplier;
 
 /**
  * Thin HTTP controller — delegates to access-core use-cases and

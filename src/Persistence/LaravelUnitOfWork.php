@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Persistence;
+namespace ModularizeRbac\Laravel\Persistence;
 
 use Illuminate\Database\ConnectionResolverInterface;
-use Modularize\Access\Application\Ports\UnitOfWork;
+use ModularizeRbac\Core\Application\Ports\UnitOfWork;
 
 /**
  * {@see UnitOfWork} adapter wrapping Laravel's DB transaction

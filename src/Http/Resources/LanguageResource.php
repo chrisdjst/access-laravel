@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Http\Resources;
+namespace ModularizeRbac\Laravel\Http\Resources;
 
 use DateTimeInterface;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modularize\Access\Application\Language\LanguageOutput;
+use ModularizeRbac\Core\Application\Language\LanguageOutput;
 
 class LanguageResource extends JsonResource
 {

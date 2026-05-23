@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Http\Requests;
+namespace ModularizeRbac\Laravel\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Validates the structural shape of an incoming Language creation
- * payload. Authorization lives inside the {@see \Modularize\Access\Application\Language\CreateLanguage\CreateLanguage}
- * use-case via the {@see \Modularize\Access\Application\Ports\Authorizer}
+ * payload. Authorization lives inside the {@see \ModularizeRbac\Core\Application\Language\CreateLanguage\CreateLanguage}
+ * use-case via the {@see \ModularizeRbac\Core\Application\Ports\Authorizer}
  * port — keep this FormRequest free of permission checks.
  */
 class StoreLanguageRequest extends FormRequest

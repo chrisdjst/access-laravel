@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Http\Requests;
+namespace ModularizeRbac\Laravel\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 

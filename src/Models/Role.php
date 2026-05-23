@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Models;
+namespace ModularizeRbac\Laravel\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +12,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
 /**
  * Persistence-only Eloquent model. The business surface (display
  * name change, tenant scoping invariants) lives in
- * {@see \Modularize\Access\Domain\Role\Role}; this class is a row
+ * {@see \ModularizeRbac\Core\Domain\Role\Role}; this class is a row
  * holder that still extends Spatie's Role so Spatie can resolve
  * roles by name through its own infrastructure.
  *

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modularize\Access\Laravel\Tests;
+namespace ModularizeRbac\Laravel\Tests;
 
 use Illuminate\Database\Schema\Blueprint;
-use Modularize\Access\Laravel\AccessServiceProvider;
+use ModularizeRbac\Laravel\AccessServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\Permission\PermissionServiceProvider;
 

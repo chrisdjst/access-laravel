@@ -82,6 +82,48 @@ class AccessServiceProvider extends ServiceProvider
         $this->registerRoutes();
         $this->registerExceptionRenderers();
         $this->registerAccessGate();
+        $this->registerConsoleCommands();
+        $this->registerAdminPolicy();
+    }
+
+    protected function registerConsoleCommands(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->commands([
+            \ModularizeRbac\Laravel\Console\DiagnoseCommand::class,
+            \ModularizeRbac\Laravel\Console\SyncSpatieCommand::class,
+            \ModularizeRbac\Laravel\Console\AuditCommand::class,
+        ]);
+    }
+
+    /**
+     * Register the configured admin policy as a `Gate::before`. The
+     * policy short-circuits package abilities (admin.*) without
+     * forcing the host to declare each one with `Gate::define()`.
+     *
+     * Hosts that want full control set `config('access.policies.admin')`
+     * to null and wire abilities themselves.
+     */
+    protected function registerAdminPolicy(): void
+    {
+        $policy = config('access.policies.admin');
+        if (! is_string($policy) || $policy === '') {
+            return;
+        }
+        if (! class_exists($policy)) {
+            return;
+        }
+        $instance = $this->app->make($policy);
+        if (! method_exists($instance, 'before')) {
+            return;
+        }
+
+        GateFacade::before(static function ($user, string $ability) use ($instance): ?bool {
+            return $instance->before($user, $ability);
+        });
     }
 
     /**

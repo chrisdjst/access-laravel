@@ -19,12 +19,15 @@ return [
     | Route middleware
     |--------------------------------------------------------------------------
     |
-    | Middleware stack applied to all package routes. Default includes the
-    | `api` group (Laravel's stateless API stack: throttle, substitute
-    | bindings) plus `auth:sanctum` and `admin.auth` (host-defined alias
-    | that resolves the admin user and sets the Spatie team context).
+    | Middleware stack applied to all package routes. The v2.0 default is
+    | conservative: just the `api` group + Sanctum auth. Hosts that need a
+    | custom admin alias (e.g. one that sets a Spatie team context) add it
+    | here.
+    |
+    | Pre-v2 default included `admin.auth`. That alias is now host-defined
+    | and OPT-IN — see the upgrade guide in CHANGELOG.md.
     */
-    'middleware' => ['api', 'auth:sanctum', 'admin.auth'],
+    'middleware' => ['api', 'auth:sanctum'],
 
     /*
     |--------------------------------------------------------------------------

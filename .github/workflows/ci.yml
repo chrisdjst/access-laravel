@@ -33,6 +33,20 @@ jobs:
           extensions: dom, curl, libxml, mbstring, pdo, pdo_sqlite, sqlite, bcmath, intl
           coverage: none
 
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-spatie-${{ matrix.spatie }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            composer-${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-spatie-${{ matrix.spatie }}-
+            composer-${{ runner.os }}-php-${{ matrix.php }}-
+            composer-${{ runner.os }}-
+
       - name: Pin framework versions
         run: composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
 

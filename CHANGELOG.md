@@ -23,6 +23,11 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 - **Permission inheritance via module hierarchy** (opt-in):
   - New config key `access.inheritance.enabled` (default `false`). When `true`, `$user->can('events.weddings.view')` walks the module tree upward — a parent's binding grants the same action on every descendant.
   - `HasAccessPermissions::canAccess()` delegates to `PermissionInheritanceResolver` (from `modularize-rbac/core` ^1.6) when the flag is on. The default `false` preserves v2.0/v2.1 semantics where a binding must live on the requested module itself.
+- **Import / export console commands** for env-to-env replication:
+  - `php artisan access:export [--output=path.json]` — dump modules, module permissions, role-module bindings, roles, languages, and translations as JSON. Carries a `schema_version` for forward-compat. Writes to stdout if `--output` is omitted.
+  - `php artisan access:import path.json [--strategy=merge|replace] [--force]` — `merge` upserts every row by id (translations upsert by their natural key); `replace` wipes every package-owned table before insert. `replace` prompts for confirmation unless `--force` is passed.
+  - Rejects unknown `schema_version` values with a descriptive error.
+  - Both commands registered by `AccessServiceProvider::registerConsoleCommands()`.
 - **Role hierarchy via `parent_role_id`** (always on, additive):
   - New migration `2026_06_02_000000_add_parent_role_id_to_roles.php` adds a nullable self-FK on `roles.parent_role_id` with `onDelete('set null')`. Idempotent via `Schema::hasColumn()`.
   - `RoleMapper` round-trips the field; `Role` Eloquent model adds it to `$fillable`.

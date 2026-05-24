@@ -104,6 +104,8 @@ class AccessServiceProvider extends ServiceProvider
             \ModularizeRbac\Laravel\Console\SyncSpatieCommand::class,
             \ModularizeRbac\Laravel\Console\AuditCommand::class,
             \ModularizeRbac\Laravel\Console\AuditPurgeCommand::class,
+            \ModularizeRbac\Laravel\Console\ExportCommand::class,
+            \ModularizeRbac\Laravel\Console\ImportCommand::class,
         ]);
     }
 

@@ -108,6 +108,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Permission inheritance via module hierarchy
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, `$user->can('events.weddings.view')` walks the module
+    | tree upward: if a role has `view` on `events.weddings` directly the
+    | answer is yes; if not but the role has `view` on the parent `events`
+    | the answer is still yes. Defaults to `false` to preserve v2.0/v2.1
+    | semantics where a binding must live on the requested module itself.
+    |
+    | Opt in by setting to `true` once your module hierarchy + role
+    | bindings reflect the inheritance you expect — there is no undoing
+    | accidental grants other than reviewing role bindings.
+    */
+    'inheritance' => [
+        'enabled' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Policies
     |--------------------------------------------------------------------------
     |

@@ -11,6 +11,8 @@ use Illuminate\Routing\Controller;
 use ModularizeRbac\Core\Application\Ports\LanguageRepository;
 use ModularizeRbac\Core\Application\Ports\RoleModulePermissionRepository;
 use ModularizeRbac\Core\Application\Ports\TranslationRepository;
+use ModularizeRbac\Core\Application\Role\AssignUsersToRole\AssignUsersToRole;
+use ModularizeRbac\Core\Application\Role\AssignUsersToRole\AssignUsersToRoleInput;
 use ModularizeRbac\Core\Application\Role\CloneRole\CloneRole;
 use ModularizeRbac\Core\Application\Role\CloneRole\CloneRoleInput;
 use ModularizeRbac\Core\Application\Role\CreateRole\CreateRole;
@@ -25,6 +27,7 @@ use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModulesInput;
 use ModularizeRbac\Core\Application\Role\UpdateRole\UpdateRole;
 use ModularizeRbac\Core\Application\Role\UpdateRole\UpdateRoleInput;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Http\Requests\AssignUsersToRoleRequest;
 use ModularizeRbac\Laravel\Http\Requests\CloneRoleRequest;
 use ModularizeRbac\Laravel\Http\Requests\StoreRoleRequest;
 use ModularizeRbac\Laravel\Http\Requests\SyncRoleModulesRequest;
@@ -47,6 +50,7 @@ class RoleController extends Controller
         private readonly UpdateRole $updateRoleUseCase,
         private readonly DeleteRole $deleteRoleUseCase,
         private readonly CloneRole $cloneRoleUseCase,
+        private readonly AssignUsersToRole $assignUsersToRoleUseCase,
         private readonly SyncRoleModules $syncRoleModules,
         private readonly GetRolePermissionMatrix $rolePermissionMatrix,
         private readonly TranslationApplier $translations,
@@ -115,6 +119,20 @@ class RoleController extends Controller
         ));
 
         return (new RoleResource($this->enrich($output)))->response()->setStatusCode(201);
+    }
+
+    public function bulkAssignUsers(AssignUsersToRoleRequest $request, string $role): RoleResource
+    {
+        /** @var list<string> $userIds */
+        $userIds = $request->validated('user_ids', []);
+
+        $output = $this->assignUsersToRoleUseCase->execute(new AssignUsersToRoleInput(
+            roleId: $role,
+            userIds: $userIds,
+            tenantId: $request->validated('organization_id'),
+        ));
+
+        return new RoleResource($this->enrich($output));
     }
 
     public function permissionMatrix(string $role): RolePermissionMatrixResource

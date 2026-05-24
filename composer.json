@@ -21,8 +21,16 @@
     ],
     "support": {
         "issues": "https://github.com/chrisdjst/access-laravel/issues",
-        "source": "https://github.com/chrisdjst/access-laravel"
+        "source": "https://github.com/chrisdjst/access-laravel",
+        "docs": "https://github.com/chrisdjst/access-laravel#readme",
+        "chat": "https://github.com/chrisdjst/access-laravel/discussions"
     },
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/chrisdjst"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.0|^12.0",

@@ -2,7 +2,9 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.2.0] - Unreleased
+## [2.2.0] - 2026-05-24
+
+Minor release: ships role cloning, bulk module operations, bulk user-to-role assignment, opt-in permission inheritance via module hierarchy, role hierarchy via `parent_role_id`, and import/export console commands. Fully backwards compatible with v2.1.x — see [UPGRADING.md](./UPGRADING.md#v21--v22) for opt-in details.
 
 ### Added
 

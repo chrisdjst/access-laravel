@@ -4,6 +4,68 @@ This guide consolidates the upgrade notes for major and minor versions of the br
 
 ---
 
+## v2.1 → v2.2
+
+`v2.2.0` is fully backwards compatible with `v2.1.x`. The notes below describe additive features and one new migration to apply.
+
+### Composer bump
+
+```bash
+composer require modularize-rbac/laravel:^2.2
+```
+
+This pulls `modularize-rbac/core: ^1.7` (additive — `CloneRole`, `BulkCreateModules`, `BulkDeleteModules`, `AssignUsersToRole`, `UserRoleAssigner`, `PermissionInheritanceResolver`, `parentRoleId`, `resolveAncestors`).
+
+### Apply the new migration
+
+```bash
+php artisan migrate
+```
+
+Adds a nullable `parent_role_id` self-FK on the `roles` table. Idempotent — re-running on a host that already added the column is a no-op.
+
+### New REST endpoints (additive)
+
+| Method | URL | Ability |
+|---|---|---|
+| POST | `/api/admin/roles/{source}/clone` | `admin.roles.create` |
+| POST | `/api/admin/roles/{role}/users/bulk` | `admin.roles.update` |
+| POST | `/api/admin/modules/bulk` | `admin.modules.create` |
+| DELETE | `/api/admin/modules/bulk` | `admin.modules.delete` |
+
+`StoreRoleRequest` now accepts an optional `parent_role_id` (UUID). Hosts that subclassed `RoleController` or `ModuleController` need to thread the new use-case dependencies through their constructor — the parent signatures widened to inject `CloneRole`, `AssignUsersToRole`, `BulkCreateModules`, `BulkDeleteModules`.
+
+### Console: import / export
+
+```bash
+php artisan access:export --output=/tmp/access.json
+php artisan access:import /tmp/access.json --strategy=merge
+php artisan access:import /tmp/access.json --strategy=replace --force   # DESTRUCTIVE
+```
+
+Payloads carry `schema_version: 1`. The importer rejects unknown versions.
+
+### Opt-in: permission inheritance via module hierarchy
+
+```php
+// config/access.php
+'inheritance' => [
+    'enabled' => true,
+],
+```
+
+Defaults to `false`. When enabled, `$user->can('events.weddings.view')` walks the module tree upward — a parent's binding grants the same action on every descendant. Adopt only after auditing that your module hierarchy + role bindings reflect the inheritance you intend.
+
+### Always-on: role hierarchy via `parent_role_id`
+
+After running the migration, `roles.parent_role_id` is a nullable self-FK. A role with a `parent_role_id` set inherits the entire permission matrix of every ancestor — `HasAccessPermissions::canAccess()` now walks the chain on every check. Hosts that don't populate the column see no behavior change.
+
+Cycle prevention:
+- `Role::create()` rejects self-parenting at the domain layer.
+- `EloquentRoleRepository::resolveAncestors()` short-circuits on any cycle introduced by raw SQL.
+
+---
+
 ## v2.0 → v2.1
 
 `v2.1.0` is fully backwards compatible with `v2.0.x` — no schema changes, no public API removals. The notes below describe **opt-in** changes hosts may want to adopt.

@@ -20,9 +20,13 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
   - `EloquentUserRoleAssigner` adapter implements the new core `UserRoleAssigner` port via direct writes to the `role_user` pivot. Bound in `AccessServiceProvider::registerRepositories()`.
   - `RoleController` constructor widened to inject `AssignUsersToRole`.
 
+- **Permission inheritance via module hierarchy** (opt-in):
+  - New config key `access.inheritance.enabled` (default `false`). When `true`, `$user->can('events.weddings.view')` walks the module tree upward — a parent's binding grants the same action on every descendant.
+  - `HasAccessPermissions::canAccess()` delegates to `PermissionInheritanceResolver` (from `modularize-rbac/core` ^1.6) when the flag is on. The default `false` preserves v2.0/v2.1 semantics where a binding must live on the requested module itself.
+
 ### Changed
 
-- `composer.json` requires `modularize-rbac/core: ^1.5` (was `^1.3`). Additive bump — picks up `CloneRole`, `BulkCreateModules`, `BulkDeleteModules`, `AssignUsersToRole`, and the new `UserRoleAssigner` port.
+- `composer.json` requires `modularize-rbac/core: ^1.6` (was `^1.3`). Additive bump — picks up `CloneRole`, `BulkCreateModules`, `BulkDeleteModules`, `AssignUsersToRole`, the `UserRoleAssigner` port, and `PermissionInheritanceResolver`.
 
 ## [2.1.0] - 2026-05-24
 

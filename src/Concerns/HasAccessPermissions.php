@@ -6,7 +6,12 @@ namespace ModularizeRbac\Laravel\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use ModularizeRbac\Core\Domain\Module\ModulePermission as DomainModulePermission;
+use ModularizeRbac\Core\Domain\Module\ModuleSlug;
 use ModularizeRbac\Core\Domain\Permission\PermissionName;
+use ModularizeRbac\Core\Domain\RoleModulePermission\PermissionInheritanceResolver;
+use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Models\Module;
 use ModularizeRbac\Laravel\Models\ModulePermission;
 use ModularizeRbac\Laravel\Models\Role;
 use ModularizeRbac\Laravel\Models\RoleModulePermission;
@@ -51,6 +56,10 @@ trait HasAccessPermissions
      * This is the function `Gate::before` delegates to so
      * `$user->can('events.view')` short-circuits before any policy
      * resolution.
+     *
+     * When `config('access.inheritance.enabled')` is true, an
+     * ability that has no direct binding falls back to the module's
+     * ancestor chain via {@see PermissionInheritanceResolver}.
      */
     public function canAccess(string $ability): bool
     {
@@ -78,6 +87,10 @@ trait HasAccessPermissions
             ->whereIn('role_id', $roleIds)
             ->get();
 
+        if ((bool) config('access.inheritance.enabled', false)) {
+            return $this->resolveWithInheritance($name, $bindings);
+        }
+
         foreach ($bindings as $binding) {
             if ($binding->module === null || $binding->permission === null) {
                 continue;
@@ -91,6 +104,76 @@ trait HasAccessPermissions
         }
 
         return false;
+    }
+
+    /**
+     * Walk the module hierarchy via {@see PermissionInheritanceResolver}.
+     * Pre-loads the full module table into slug→ModuleSlug indices so
+     * the resolver's parent lookup is O(1) per step.
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection<int, RoleModulePermission>  $bindings
+     */
+    private function resolveWithInheritance(PermissionName $name, $bindings): bool
+    {
+        // Bindings grouped by the module SLUG they target. The
+        // resolver consults flag sets per slug; each role binding
+        // contributes one flag set under its module's slug.
+        $flagsBySlug = [];
+        foreach ($bindings as $binding) {
+            if ($binding->module === null || $binding->permission === null) {
+                continue;
+            }
+            $slug = (string) $binding->module->slug;
+            $flagsBySlug[$slug][] = $this->toDomainFlags($binding->permission);
+        }
+
+        // Parent lookup index: child slug → parent ModuleSlug.
+        // Modules with no parent or unknown ids end the walk.
+        $parentBySlug = [];
+        $allModules = Module::query()->select(['id', 'slug', 'root_module_id'])->get();
+        $slugById = [];
+        foreach ($allModules as $module) {
+            $slugById[(string) $module->id] = (string) $module->slug;
+        }
+        foreach ($allModules as $module) {
+            $parentId = $module->root_module_id;
+            if ($parentId === null) {
+                continue;
+            }
+            $parentSlug = $slugById[(string) $parentId] ?? null;
+            if ($parentSlug === null) {
+                continue;
+            }
+            $parentBySlug[(string) $module->slug] = new ModuleSlug($parentSlug);
+        }
+
+        $resolver = new PermissionInheritanceResolver();
+
+        return $resolver->isAllowed(
+            $name,
+            flagsForSlug: static fn (ModuleSlug $s): array => $flagsBySlug[$s->value] ?? [],
+            parentOfSlug: static fn (ModuleSlug $s): ?ModuleSlug => $parentBySlug[$s->value] ?? null,
+        );
+    }
+
+    /**
+     * Construct a domain ModulePermission carrying just the boolean
+     * flags the resolver inspects. Other fields (timestamps, audit
+     * ids) don't influence the inheritance answer, so dummies are
+     * passed.
+     */
+    private function toDomainFlags(ModulePermission $row): DomainModulePermission
+    {
+        return DomainModulePermission::create(
+            id: new Uuid((string) $row->id),
+            isListingAllowed: (bool) $row->is_listing_allowed,
+            isReadingAllowed: (bool) $row->is_reading_allowed,
+            isWritingAllowed: (bool) $row->is_writing_allowed,
+            isEditingAllowed: (bool) $row->is_editing_allowed,
+            isDeleteAllowed: (bool) $row->is_delete_allowed,
+            createdBy: null,
+            clock: new \ModularizeRbac\Laravel\Persistence\SystemClock(),
+        );
     }
 
     private function actionAllowed(ModulePermission $permission, string $action): bool

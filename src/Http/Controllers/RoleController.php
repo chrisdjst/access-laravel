@@ -11,6 +11,8 @@ use Illuminate\Routing\Controller;
 use ModularizeRbac\Core\Application\Ports\LanguageRepository;
 use ModularizeRbac\Core\Application\Ports\RoleModulePermissionRepository;
 use ModularizeRbac\Core\Application\Ports\TranslationRepository;
+use ModularizeRbac\Core\Application\Role\CloneRole\CloneRole;
+use ModularizeRbac\Core\Application\Role\CloneRole\CloneRoleInput;
 use ModularizeRbac\Core\Application\Role\CreateRole\CreateRole;
 use ModularizeRbac\Core\Application\Role\CreateRole\CreateRoleInput;
 use ModularizeRbac\Core\Application\Role\DeleteRole\DeleteRole;
@@ -23,6 +25,7 @@ use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModulesInput;
 use ModularizeRbac\Core\Application\Role\UpdateRole\UpdateRole;
 use ModularizeRbac\Core\Application\Role\UpdateRole\UpdateRoleInput;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Http\Requests\CloneRoleRequest;
 use ModularizeRbac\Laravel\Http\Requests\StoreRoleRequest;
 use ModularizeRbac\Laravel\Http\Requests\SyncRoleModulesRequest;
 use ModularizeRbac\Laravel\Http\Requests\UpdateRoleRequest;
@@ -43,6 +46,7 @@ class RoleController extends Controller
         private readonly CreateRole $createRoleUseCase,
         private readonly UpdateRole $updateRoleUseCase,
         private readonly DeleteRole $deleteRoleUseCase,
+        private readonly CloneRole $cloneRoleUseCase,
         private readonly SyncRoleModules $syncRoleModules,
         private readonly GetRolePermissionMatrix $rolePermissionMatrix,
         private readonly TranslationApplier $translations,
@@ -98,6 +102,19 @@ class RoleController extends Controller
         $this->deleteRoleUseCase->execute($role);
 
         return response()->json(null, 204);
+    }
+
+    public function clone(CloneRoleRequest $request, string $role): JsonResponse
+    {
+        $data = $request->validated();
+
+        $output = $this->cloneRoleUseCase->execute(new CloneRoleInput(
+            sourceRoleId: $role,
+            name: (string) $data['name'],
+            displayName: $data['display_name'] ?? null,
+        ));
+
+        return (new RoleResource($this->enrich($output)))->response()->setStatusCode(201);
     }
 
     public function permissionMatrix(string $role): RolePermissionMatrixResource

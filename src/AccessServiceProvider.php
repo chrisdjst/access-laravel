@@ -31,6 +31,7 @@ use ModularizeRbac\Core\Application\Ports\RoleRepository;
 use ModularizeRbac\Core\Application\Ports\TenantContext;
 use ModularizeRbac\Core\Application\Ports\TranslationRepository;
 use ModularizeRbac\Core\Application\Ports\UnitOfWork;
+use ModularizeRbac\Core\Application\Ports\UserRoleAssigner;
 use ModularizeRbac\Core\Application\Ports\UserRoleResolver;
 use ModularizeRbac\Core\Domain\Shared\Clock;
 use ModularizeRbac\Core\Domain\Shared\IdGenerator;
@@ -51,6 +52,7 @@ use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentPermissionRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentRoleModulePermissionRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentRoleRepository;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentTranslationRepository;
+use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentUserRoleAssigner;
 use ModularizeRbac\Laravel\Eloquent\Repositories\EloquentUserRoleResolver;
 use ModularizeRbac\Laravel\Events\LaravelEventDispatcher;
 use ModularizeRbac\Laravel\Localization\LaravelLocaleResolver;
@@ -255,6 +257,12 @@ class AccessServiceProvider extends ServiceProvider
 
         $this->app->bind(UserRoleResolver::class, function (Application $app): EloquentUserRoleResolver {
             return new EloquentUserRoleResolver(
+                $app->make(ConnectionResolverInterface::class)->connection(),
+            );
+        });
+
+        $this->app->bind(UserRoleAssigner::class, function (Application $app): EloquentUserRoleAssigner {
+            return new EloquentUserRoleAssigner(
                 $app->make(ConnectionResolverInterface::class)->connection(),
             );
         });

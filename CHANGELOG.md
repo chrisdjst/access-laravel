@@ -9,10 +9,20 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 - `POST /api/admin/roles/{source}/clone` — produce a new role with the same module-permission matrix as `{source}`. Payload: `{ name, display_name? }`. Inherits guard / tenant / level from the source; `is_system` is always `false` on the clone; missing `display_name` falls back to the source's. Authorization: `admin.roles.create`. Returns 201 with the cloned role plus its enriched modules block.
 - `CloneRoleRequest` form request backing the new endpoint.
 - `RoleController::clone()` method (signature widened to inject `CloneRole`).
+- **Bulk module endpoints**:
+  - `POST /api/admin/modules/bulk` — create many modules atomically. Payload: `{ modules: [ { slug, name, ... }, ... ] }`. Returns 201 with a `data` collection. Rolls back on any per-entry failure (existing slug, duplicate slug within payload, missing parent module, etc.).
+  - `DELETE /api/admin/modules/bulk` — soft-delete many modules atomically. Payload: `{ ids: [uuid, uuid, ...] }`. Returns 204. Returns 404 (and rolls back) if any id is missing.
+  - `BulkCreateModulesRequest` / `BulkDeleteModulesRequest` form requests back the endpoints.
+  - `ModuleController` constructor widened to inject `BulkCreateModules` / `BulkDeleteModules`.
+- **Bulk user assignment**:
+  - `POST /api/admin/roles/{role}/users/bulk` — bind a set of users to a role atomically. Payload: `{ user_ids: [uuid, ...], organization_id? }`. Authorization: `admin.roles.update`. Idempotent — re-running with the same payload is a no-op (existing rows in `role_user` are left untouched).
+  - `AssignUsersToRoleRequest` form request backing the endpoint.
+  - `EloquentUserRoleAssigner` adapter implements the new core `UserRoleAssigner` port via direct writes to the `role_user` pivot. Bound in `AccessServiceProvider::registerRepositories()`.
+  - `RoleController` constructor widened to inject `AssignUsersToRole`.
 
 ### Changed
 
-- `composer.json` requires `modularize-rbac/core: ^1.4` (was `^1.3`). Additive bump — picks up the new `CloneRole` use-case.
+- `composer.json` requires `modularize-rbac/core: ^1.5` (was `^1.3`). Additive bump — picks up `CloneRole`, `BulkCreateModules`, `BulkDeleteModules`, `AssignUsersToRole`, and the new `UserRoleAssigner` port.
 
 ## [2.1.0] - 2026-05-24
 

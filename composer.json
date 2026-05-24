@@ -34,7 +34,7 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.0|^12.0",
-        "modularize-rbac/core": "^1.4"
+        "modularize-rbac/core": "^1.5"
     },
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.0",

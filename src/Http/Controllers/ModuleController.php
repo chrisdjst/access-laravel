@@ -7,6 +7,10 @@ namespace ModularizeRbac\Laravel\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
+use ModularizeRbac\Core\Application\Module\BulkCreateModules\BulkCreateModules;
+use ModularizeRbac\Core\Application\Module\BulkCreateModules\BulkCreateModulesInput;
+use ModularizeRbac\Core\Application\Module\BulkDeleteModules\BulkDeleteModules;
+use ModularizeRbac\Core\Application\Module\BulkDeleteModules\BulkDeleteModulesInput;
 use ModularizeRbac\Core\Application\Module\CreateModule\CreateModule;
 use ModularizeRbac\Core\Application\Module\CreateModule\CreateModuleInput;
 use ModularizeRbac\Core\Application\Module\DeleteModule\DeleteModule;
@@ -18,6 +22,8 @@ use ModularizeRbac\Core\Application\Module\UpdateModule\UpdateModuleInput;
 use ModularizeRbac\Core\Application\Ports\LanguageRepository;
 use ModularizeRbac\Core\Application\Ports\TranslationRepository;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
+use ModularizeRbac\Laravel\Http\Requests\BulkCreateModulesRequest;
+use ModularizeRbac\Laravel\Http\Requests\BulkDeleteModulesRequest;
 use ModularizeRbac\Laravel\Http\Requests\StoreModuleRequest;
 use ModularizeRbac\Laravel\Http\Requests\UpdateModuleRequest;
 use ModularizeRbac\Laravel\Http\Resources\ModuleResource;
@@ -38,6 +44,8 @@ class ModuleController extends Controller
         private readonly CreateModule $createModule,
         private readonly UpdateModule $updateModule,
         private readonly DeleteModule $deleteModuleUseCase,
+        private readonly BulkCreateModules $bulkCreateModules,
+        private readonly BulkDeleteModules $bulkDeleteModules,
         private readonly TranslationApplier $translations,
         private readonly TranslationRepository $translationRepository,
         private readonly LanguageRepository $languageRepository,
@@ -108,6 +116,28 @@ class ModuleController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $this->deleteModuleUseCase->execute($id);
+
+        return response()->json(null, 204);
+    }
+
+    public function bulkStore(BulkCreateModulesRequest $request): JsonResponse
+    {
+        /** @var list<array<string, mixed>> $modules */
+        $modules = $request->validated('modules', []);
+
+        $outputs = $this->bulkCreateModules->execute(new BulkCreateModulesInput($modules));
+
+        $resources = array_map(fn (ModuleOutput $out) => $this->enrich($out), $outputs);
+
+        return ModuleResource::collection($resources)->response()->setStatusCode(201);
+    }
+
+    public function bulkDestroy(BulkDeleteModulesRequest $request): JsonResponse
+    {
+        /** @var list<string> $ids */
+        $ids = $request->validated('ids', []);
+
+        $this->bulkDeleteModules->execute(new BulkDeleteModulesInput($ids));
 
         return response()->json(null, 204);
     }

@@ -2,6 +2,18 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.2.0] - Unreleased
+
+### Added
+
+- `POST /api/admin/roles/{source}/clone` — produce a new role with the same module-permission matrix as `{source}`. Payload: `{ name, display_name? }`. Inherits guard / tenant / level from the source; `is_system` is always `false` on the clone; missing `display_name` falls back to the source's. Authorization: `admin.roles.create`. Returns 201 with the cloned role plus its enriched modules block.
+- `CloneRoleRequest` form request backing the new endpoint.
+- `RoleController::clone()` method (signature widened to inject `CloneRole`).
+
+### Changed
+
+- `composer.json` requires `modularize-rbac/core: ^1.4` (was `^1.3`). Additive bump — picks up the new `CloneRole` use-case.
+
 ## [2.1.0] - 2026-05-24
 
 Minor release: closes the HTTP gap for use-cases that previously had no route, ships exception i18n, adds an audit retention command, and improves docs + CI. Fully backwards compatible with v2.0.x — see [UPGRADING.md](./UPGRADING.md#v20--v21) for opt-in details.

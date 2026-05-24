@@ -37,6 +37,7 @@ class RoleResource extends JsonResource
             'guard_name' => $output->guard,
             'level' => $output->level,
             'is_system' => $output->isSystem,
+            'parent_role_id' => $output->parentRoleId,
             'organization_id' => $output->tenantId,
             'translations' => $bundle['translations'],
             'modules' => $bundle['modules'],

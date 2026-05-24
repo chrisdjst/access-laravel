@@ -77,10 +77,12 @@ trait HasAccessPermissions
             return false;
         }
 
-        $roleIds = $this->rbacRoles()->pluck('roles.id')->all();
-        if ($roleIds === []) {
+        $directRoleIds = $this->rbacRoles()->pluck('roles.id')->all();
+        if ($directRoleIds === []) {
             return false;
         }
+
+        $roleIds = $this->expandRoleIdsWithAncestors($directRoleIds);
 
         $bindings = RoleModulePermission::query()
             ->with(['module', 'permission'])
@@ -174,6 +176,50 @@ trait HasAccessPermissions
             createdBy: null,
             clock: new \ModularizeRbac\Laravel\Persistence\SystemClock(),
         );
+    }
+
+    /**
+     * Expand the user's directly-assigned role ids by walking each
+     * role's `parent_role_id` chain. Ancestor bindings are honored
+     * the same as direct bindings — a role inherits the matrix of
+     * every ancestor.
+     *
+     * Walks defensively: cycles short-circuit on the visited set,
+     * orphan pointers stop the walk silently.
+     *
+     * @param  list<mixed>  $directRoleIds
+     * @return list<string>
+     */
+    private function expandRoleIdsWithAncestors(array $directRoleIds): array
+    {
+        $visited = [];
+        $stack = [];
+        foreach ($directRoleIds as $id) {
+            $strId = (string) $id;
+            if (! isset($visited[$strId])) {
+                $visited[$strId] = true;
+                $stack[] = $strId;
+            }
+        }
+
+        $cursor = 0;
+        while ($cursor < count($stack)) {
+            $current = $stack[$cursor++];
+            $parentId = \ModularizeRbac\Laravel\Models\Role::query()
+                ->whereKey($current)
+                ->value('parent_role_id');
+            if ($parentId === null) {
+                continue;
+            }
+            $parentStr = (string) $parentId;
+            if (isset($visited[$parentStr])) {
+                continue;
+            }
+            $visited[$parentStr] = true;
+            $stack[] = $parentStr;
+        }
+
+        return $stack;
     }
 
     private function actionAllowed(ModulePermission $permission, string $action): bool

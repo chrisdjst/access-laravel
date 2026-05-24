@@ -24,6 +24,7 @@ final class RoleMapper
             isSystem: (bool) ($model->is_system ?? false),
             createdAt: $model->created_at?->toDateTimeImmutable() ?? new \DateTimeImmutable(),
             updatedAt: $model->updated_at?->toDateTimeImmutable() ?? new \DateTimeImmutable(),
+            parentRoleId: $model->parent_role_id !== null ? new Uuid((string) $model->parent_role_id) : null,
         );
     }
 
@@ -37,6 +38,7 @@ final class RoleMapper
         $model->organization_id = $entity->tenantId()?->value;
         $model->level = $entity->level()->value;
         $model->is_system = $entity->isSystem();
+        $model->parent_role_id = $entity->parentRoleId()?->value;
         $model->created_at = $entity->createdAt();
         $model->updated_at = $entity->updatedAt();
 

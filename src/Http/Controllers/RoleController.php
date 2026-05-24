@@ -92,6 +92,7 @@ class RoleController extends Controller
             tenantId: $data['organization_id'] ?? null,
             level: (int) ($data['level'] ?? 0),
             isSystem: (bool) ($data['is_system'] ?? false),
+            parentRoleId: $data['parent_role_id'] ?? null,
         ));
 
         if (is_array($payloadTranslations)) {

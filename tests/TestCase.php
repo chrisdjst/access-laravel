@@ -71,6 +71,7 @@ abstract class TestCase extends Orchestra
                 $table->uuid('organization_id')->nullable();
                 $table->integer('level')->default(0);
                 $table->boolean('is_system')->default(false);
+                $table->uuid('parent_role_id')->nullable();
                 $table->timestamps();
                 $table->unique(['name', 'guard_name', 'organization_id']);
             });

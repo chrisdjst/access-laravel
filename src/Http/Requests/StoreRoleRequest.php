@@ -25,6 +25,7 @@ class StoreRoleRequest extends FormRequest
             'organization_id' => ['sometimes', 'nullable', 'uuid'],
             'level' => ['sometimes', 'integer', 'min:0'],
             'is_system' => ['sometimes', 'boolean'],
+            'parent_role_id' => ['sometimes', 'nullable', 'uuid'],
             'translations' => ['sometimes', 'array'],
             'translations.*' => ['array'],
         ];

@@ -38,6 +38,7 @@ class Role extends Model
         'organization_id',
         'level',
         'is_system',
+        'parent_role_id',
     ];
 
     protected function casts(): array

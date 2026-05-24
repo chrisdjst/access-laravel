@@ -74,4 +74,36 @@ final class EloquentRoleRepository implements RoleRepository
 
         return $model !== null ? $this->mapper->toDomain($model) : null;
     }
+
+    public function resolveAncestors(Uuid $roleId): array
+    {
+        $ancestors = [];
+        $visited = [$roleId->value => true];
+        $currentId = $roleId->value;
+
+        while (true) {
+            $parentId = RoleEloquent::query()
+                ->whereKey($currentId)
+                ->value('parent_role_id');
+
+            if ($parentId === null) {
+                break;
+            }
+            $parentStr = (string) $parentId;
+            if (isset($visited[$parentStr])) {
+                break; // cycle break
+            }
+            $visited[$parentStr] = true;
+
+            // Confirm the parent still exists; orphan pointer stops the walk.
+            if (! RoleEloquent::query()->whereKey($parentStr)->exists()) {
+                break;
+            }
+
+            $ancestors[] = new Uuid($parentStr);
+            $currentId = $parentStr;
+        }
+
+        return $ancestors;
+    }
 }

@@ -37,6 +37,92 @@ A drop-in admin RBAC layer with:
 └──────────────────────────────────────────────────────────────┘
 ```
 
+## Quickstart
+
+From a fresh Laravel 11 / 12 host to a first authorized request in roughly five minutes.
+
+### 1. Install
+
+```bash
+composer require modularize-rbac/laravel
+php artisan vendor:publish --tag=access-config
+php artisan migrate
+```
+
+### 2. Wire the User model
+
+```php
+// app/Models/User.php
+use ModularizeRbac\Laravel\Concerns\HasAccessPermissions;
+
+class User extends Authenticatable
+{
+    use HasAccessPermissions;
+}
+```
+
+### 3. Seed a module, a role, and a binding
+
+```php
+// database/seeders/DatabaseSeeder.php (or a tinker session)
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModule;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModuleInput;
+use ModularizeRbac\Core\Application\Role\CreateRole\CreateRole;
+use ModularizeRbac\Core\Application\Role\CreateRoleInput;
+use ModularizeRbac\Core\Application\RoleModulePermission\SyncRoleModules\SyncRoleModules;
+use ModularizeRbac\Core\Application\RoleModulePermission\SyncRoleModules\SyncRoleModulesInput;
+
+$module = app(CreateModule::class)->execute(new CreateModuleInput(
+    slug: 'events',
+    name: 'Events',
+    redirect: '/events',
+    icon: 'calendar',
+    rootModuleId: null,
+    sortOrder: 10,
+));
+
+$role = app(CreateRole::class)->execute(new CreateRoleInput(
+    name: 'event_viewer',
+    displayName: 'Event Viewer',
+    guardName: 'web',
+    level: 100,
+));
+
+app(SyncRoleModules::class)->execute(new SyncRoleModulesInput(
+    roleId: $role->id,
+    modules: [
+        ['module_id' => $module->id, 'is_reading_allowed' => true],
+    ],
+));
+
+DB::table('role_user')->insert([
+    'role_id' => $role->id,
+    'user_id' => 1,
+    'organization_id' => null,
+    'created_at' => now(),
+    'updated_at' => now(),
+]);
+```
+
+### 4. Use it
+
+```php
+// In any controller / Gate / Blade
+if ($request->user()->can('events.view')) {
+    // ✓ allowed via role_user → role_module_permission → module
+}
+```
+
+### 5. (Optional) Hit the admin API
+
+The admin REST surface lives under `config('access.route_prefix')` (default `api/admin`). With a bearer token whose User has `admin.modules.view`:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" https://app.test/api/admin/modules
+```
+
+That's the full path. The rest of this README is configuration knobs, the full REST table, and architecture details.
+
 ## Install
 
 ```bash
@@ -161,9 +247,10 @@ $module = app(CreateModule::class)->execute(new CreateModuleInput(
 ));
 ```
 
-## Upgrading from v1.x
+## Upgrading
 
-See [CHANGELOG.md](./CHANGELOG.md) for breaking changes and step-by-step upgrade notes.
+- [UPGRADING.md](./UPGRADING.md) — consolidated upgrade guide for v2.0 → v2.1, v1.x → v2.0, and `casamento/rbac` → v1.0.
+- [CHANGELOG.md](./CHANGELOG.md) — full history with all additive changes and bugfixes.
 
 ## Layout
 

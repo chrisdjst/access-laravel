@@ -2,7 +2,9 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.1.0] - Unreleased
+## [2.1.0] - 2026-05-24
+
+Minor release: closes the HTTP gap for use-cases that previously had no route, ships exception i18n, adds an audit retention command, and improves docs + CI. Fully backwards compatible with v2.0.x — see [UPGRADING.md](./UPGRADING.md#v20--v21) for opt-in details.
 
 ### Added
 
@@ -28,6 +30,12 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 - Exception JSON responses now include a localized `error_type` field (`"Invalid input"` / `"Entrada inválida"`, etc.) alongside the existing `message` field. The detailed `message` stays in whatever language the use-case emitted (English in v2.1) — only the headline is localized. Backwards compatible: clients reading `message` see no change.
 - `php artisan access:audit:purge --older-than=<cutoff> [--dry-run]` console command for audit log retention. `<cutoff>` accepts a relative interval (`Nd` / `Nm` / `Ny`) or an absolute ISO-8601 date. `--dry-run` reports how many rows would be removed without actually deleting. Schedule it via Laravel's scheduler for ongoing retention.
 - `composer.json` requires `modularize-rbac/core: ^1.3` (was `^1.2`). Additive bump — picks up the new `AuditRepository::deleteOlderThan()` port method, which `EloquentAuditRepository` now implements.
+- `composer.json` declares `support.docs`, `support.chat`, and `funding` (GitHub Sponsors) for richer Packagist metadata.
+- `phpstan.baseline.neon` (empty) wired into `phpstan.neon.dist` includes — gives future-us a place to stash known-issue ignores without blocking unrelated PRs.
+- CI workflow caches the composer download dir per matrix cell (`actions/cache@v4`). Cuts cold-CI install time on PRs that don't touch dependencies.
+- New `.github/workflows/release.yml` — auto-creates a GitHub Release with `--generate-notes` on every `v*` tag push.
+- `UPGRADING.md` consolidates upgrade guidance for v2.0 → v2.1, v1.x → v2.0, and `casamento/rbac` → v1.0.
+- README "Quickstart" section — fresh-host → first authorized request in ~5 minutes.
 
 ## [2.0.1] - 2026-05-23
 

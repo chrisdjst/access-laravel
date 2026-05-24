@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
+use DateTimeImmutable;
 use ModularizeRbac\Core\Application\Audit\AuditQuery;
 use ModularizeRbac\Core\Application\Ports\AuditRepository;
 use ModularizeRbac\Core\Domain\Audit\AuditEntry as DomainAuditEntry;
@@ -44,6 +45,13 @@ final class EloquentAuditRepository implements AuditRepository
     public function count(AuditQuery $query): int
     {
         return $this->applyFilters(AuditEntryEloquent::query(), $query)->count();
+    }
+
+    public function deleteOlderThan(DateTimeImmutable $cutoff): int
+    {
+        return AuditEntryEloquent::query()
+            ->where('occurred_at', '<', $cutoff)
+            ->delete();
     }
 
     private function applyFilters(

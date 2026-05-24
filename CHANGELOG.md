@@ -26,6 +26,8 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 - New optional config key `access.allowed_locales` — whitelist for language `code` submissions. Defaults to `[]` (accept all).
 - Translation files at `lang/en/exceptions.php` and `lang/pt_BR/exceptions.php`. Loaded under the `access` namespace via `loadTranslationsFrom`. Publishable via `php artisan vendor:publish --tag=access-lang` for hosts that want to add more locales.
 - Exception JSON responses now include a localized `error_type` field (`"Invalid input"` / `"Entrada inválida"`, etc.) alongside the existing `message` field. The detailed `message` stays in whatever language the use-case emitted (English in v2.1) — only the headline is localized. Backwards compatible: clients reading `message` see no change.
+- `php artisan access:audit:purge --older-than=<cutoff> [--dry-run]` console command for audit log retention. `<cutoff>` accepts a relative interval (`Nd` / `Nm` / `Ny`) or an absolute ISO-8601 date. `--dry-run` reports how many rows would be removed without actually deleting. Schedule it via Laravel's scheduler for ongoing retention.
+- `composer.json` requires `modularize-rbac/core: ^1.3` (was `^1.2`). Additive bump — picks up the new `AuditRepository::deleteOlderThan()` port method, which `EloquentAuditRepository` now implements.
 
 ## [2.0.1] - 2026-05-23
 

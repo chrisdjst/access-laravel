@@ -23,10 +23,17 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 - **Permission inheritance via module hierarchy** (opt-in):
   - New config key `access.inheritance.enabled` (default `false`). When `true`, `$user->can('events.weddings.view')` walks the module tree upward — a parent's binding grants the same action on every descendant.
   - `HasAccessPermissions::canAccess()` delegates to `PermissionInheritanceResolver` (from `modularize-rbac/core` ^1.6) when the flag is on. The default `false` preserves v2.0/v2.1 semantics where a binding must live on the requested module itself.
+- **Role hierarchy via `parent_role_id`** (always on, additive):
+  - New migration `2026_06_02_000000_add_parent_role_id_to_roles.php` adds a nullable self-FK on `roles.parent_role_id` with `onDelete('set null')`. Idempotent via `Schema::hasColumn()`.
+  - `RoleMapper` round-trips the field; `Role` Eloquent model adds it to `$fillable`.
+  - `StoreRoleRequest` accepts an optional `parent_role_id` (UUID, validated by the use-case).
+  - `RoleResource` exposes `parent_role_id`.
+  - `HasAccessPermissions::canAccess()` now walks the user's roles' `parent_role_id` chain. A role inherits the permission matrix of every ancestor — bindings on the parent are honored on the child without explicit duplication. Cycle-safe (visited set short-circuits malformed chains created by raw SQL).
+  - `EloquentRoleRepository::resolveAncestors()` adapter implementing the new `modularize-rbac/core` ^1.7 port.
 
 ### Changed
 
-- `composer.json` requires `modularize-rbac/core: ^1.6` (was `^1.3`). Additive bump — picks up `CloneRole`, `BulkCreateModules`, `BulkDeleteModules`, `AssignUsersToRole`, the `UserRoleAssigner` port, and `PermissionInheritanceResolver`.
+- `composer.json` requires `modularize-rbac/core: ^1.7` (was `^1.3`). Additive bump — picks up `CloneRole`, `BulkCreateModules`, `BulkDeleteModules`, `AssignUsersToRole`, the `UserRoleAssigner` port, `PermissionInheritanceResolver`, and the role hierarchy primitives (`parentRoleId`, `resolveAncestors`).
 
 ## [2.1.0] - 2026-05-24
 

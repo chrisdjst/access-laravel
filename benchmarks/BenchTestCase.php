@@ -149,6 +149,7 @@ abstract class BenchTestCase
             $t->uuid('updated_by')->nullable();
             $t->timestamps();
             $t->unique(['role_id', 'module_id']);
+            $t->index('role_id', 'role_module_permission_role_id_index');
             $t->index('module_id');
         });
 

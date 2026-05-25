@@ -6,6 +6,10 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 
 ### Added
 
+- **Telemetry events**:
+  - `Access\Events\Telemetry\AbilityResolved` (ability, allowed, source: `direct|ancestor|inheritance|none|malformed`, durationMicros) fires at the end of every `canAccess()` call. Hosts listen to wire Sentry spans, Prometheus counters, or structured logs.
+  - `Access\Events\Telemetry\CacheLookup` (namespace, key, hit, version) fires on every read through `CachedLanguageRepository` / `CachedModuleRepository`. Useful for tracking cache hit ratios + spotting invalidation thrash.
+  - Listener exceptions never break the underlying call — every dispatch is wrapped in `try { } catch (Throwable) {}`.
 - **`access.audit.log_failures` config** controls the log level at which the audit listener reports persistence failures. Defaults to `'warning'` (matches pre-v2.7 behavior). Accepts any Monolog level (`'error'`, `'critical'`, etc.) or `false` to swallow the failure silently. The main domain flow is unaffected either way — auditing stays best-effort.
 
 ## [2.6.0] - 2026-05-25

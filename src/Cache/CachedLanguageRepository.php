@@ -52,8 +52,11 @@ final class CachedLanguageRepository implements LanguageRepository
     {
         $cached = $this->cache->get($this->version->key('all'));
         if (is_array($cached)) {
+            $this->emitLookup('all', hit: true);
+
             return $cached;
         }
+        $this->emitLookup('all', hit: false);
         $fresh = $this->inner->all();
         $this->cache->put($this->version->key('all'), $fresh, $this->ttl);
 
@@ -83,13 +86,29 @@ final class CachedLanguageRepository implements LanguageRepository
         // stores). The wrapper is a 1-element array: [0 => value].
         $wrapped = $this->cache->get($key);
         if (is_array($wrapped) && array_key_exists(0, $wrapped)) {
+            $this->emitLookup($suffix, hit: true);
             $value = $wrapped[0];
 
             return $value instanceof Language ? $value : null;
         }
+        $this->emitLookup($suffix, hit: false);
         $fresh = $loader();
         $this->cache->put($key, [$fresh], $this->ttl);
 
         return $fresh;
+    }
+
+    private function emitLookup(string $suffix, bool $hit): void
+    {
+        try {
+            event(new \ModularizeRbac\Laravel\Events\Telemetry\CacheLookup(
+                namespace: 'access:lang',
+                key: $suffix,
+                hit: $hit,
+                version: $this->version->current(),
+            ));
+        } catch (\Throwable) {
+            // Telemetry must not break reads.
+        }
     }
 }

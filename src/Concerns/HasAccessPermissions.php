@@ -63,6 +63,8 @@ trait HasAccessPermissions
      */
     public function canAccess(string $ability): bool
     {
+        $startedAt = hrtime(true);
+
         try {
             $name = new PermissionName($ability);
         } catch (Throwable) {
@@ -74,15 +76,20 @@ trait HasAccessPermissions
             // as "this package doesn't grant that" — i.e. returning
             // false so Laravel's Gate continues — is the correct
             // semantic. Logging would flood the request log.
+            $this->dispatchAbilityResolved($ability, false, 'malformed', $startedAt);
+
             return false;
         }
 
         $directRoleIds = $this->rbacRoles()->pluck('roles.id')->all();
         if ($directRoleIds === []) {
+            $this->dispatchAbilityResolved($ability, false, 'none', $startedAt);
+
             return false;
         }
 
         $roleIds = $this->expandRoleIdsWithAncestors($directRoleIds);
+        $hasAncestor = count($roleIds) > count($directRoleIds);
 
         $bindings = RoleModulePermission::query()
             ->with(['module', 'permission'])
@@ -90,7 +97,10 @@ trait HasAccessPermissions
             ->get();
 
         if ((bool) config('access.inheritance.enabled', false)) {
-            return $this->resolveWithInheritance($name, $bindings);
+            $allowed = $this->resolveWithInheritance($name, $bindings);
+            $this->dispatchAbilityResolved($ability, $allowed, $allowed ? 'inheritance' : 'none', $startedAt);
+
+            return $allowed;
         }
 
         foreach ($bindings as $binding) {
@@ -101,11 +111,32 @@ trait HasAccessPermissions
                 continue;
             }
             if ($this->actionAllowed($binding->permission, $name->action)) {
+                $direct = in_array((string) $binding->role_id, array_map(fn ($id) => (string) $id, $directRoleIds), true);
+                $this->dispatchAbilityResolved($ability, true, $direct ? 'direct' : 'ancestor', $startedAt);
+
                 return true;
             }
         }
 
+        $this->dispatchAbilityResolved($ability, false, 'none', $startedAt);
+
         return false;
+    }
+
+    private function dispatchAbilityResolved(string $ability, bool $allowed, string $source, int $startedAtHrtime): void
+    {
+        $micros = (int) round((hrtime(true) - $startedAtHrtime) / 1000);
+        try {
+            event(new \ModularizeRbac\Laravel\Events\Telemetry\AbilityResolved(
+                ability: $ability,
+                allowed: $allowed,
+                source: $source,
+                durationMicros: $micros,
+            ));
+        } catch (Throwable) {
+            // Telemetry must never break authorization. A listener that
+            // throws should not flip canAccess() to false.
+        }
     }
 
     /**

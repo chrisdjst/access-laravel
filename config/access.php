@@ -141,6 +141,23 @@ return [
             'cpf',
             'ssn',
         ],
+
+        /*
+        | Tamper-evident audit log. When enabled, every persisted
+        | entry gets:
+        |
+        |   `previous_hash` — entry_hash of the prior row in the same
+        |       (tenant_id, event_name) partition (NULL for the
+        |       partition's first row).
+        |   `entry_hash`    — sha256 of `previous_hash || canonical(this row)`.
+        |
+        | `php artisan access:audit:verify` walks the chain and exits 1
+        | on any break. Default is OFF so hosts on v2.7 see no
+        | behavioral change until they explicitly opt in.
+        */
+        'hash_chain' => [
+            'enabled' => false,
+        ],
     ],
 
     /*

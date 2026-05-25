@@ -6,6 +6,12 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 
 ### Added
 
+- **Tamper-evident audit log via hash chain** (opt-in):
+  - New migration `2026_06_04_000000_add_hash_chain_to_access_audit_log.php` adds nullable `entry_hash` (sha256 hex) + `previous_hash` columns. Idempotent.
+  - When `access.audit.hash_chain.enabled = true` (default false), every persisted entry gets `entry_hash = sha256(previous_hash || canonical(this row))`. Partitioned by `(tenant_id, event_name)` so concurrent unrelated events don't fight for the same head.
+  - New `php artisan access:audit:verify [--since= --event=]` command walks each partition by following `previous_hash → entry_hash` links and exits 1 on any break (tampered payload, missing head, orphan rows). Wire it into CI/cron for periodic integrity checks.
+  - Default is OFF — hosts on v2.7 see no behavior change until they explicitly enable the chain.
+  - 6 new tests cover off-by-default, first-row null prev, chained subsequent rows, verify happy path, verify-on-tamper, mixed-state silent skipping.
 - **PII redaction in audit payloads**:
   - `AuditingListener::extractPayload()` now walks the payload tree and replaces values whose key matches any pattern in `access.audit.redact_fields` with the literal string `[REDACTED]`.
   - Matching is case-insensitive substring — `'email'` covers `email`, `EMAIL`, `user_email`, `customer_email`, etc. Recurses into nested arrays.

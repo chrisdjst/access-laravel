@@ -193,6 +193,8 @@ abstract class TestCase extends Orchestra
                 $table->uuid('actor_id')->nullable();
                 $table->uuid('tenant_id')->nullable();
                 $table->json('payload');
+                $table->string('entry_hash', 64)->nullable();
+                $table->string('previous_hash', 64)->nullable();
                 $table->timestamp('occurred_at');
                 $table->index('occurred_at');
                 $table->index('event_name');

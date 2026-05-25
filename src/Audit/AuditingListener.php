@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ModularizeRbac\Laravel\Audit;
 
 use DateTimeInterface;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use ModularizeRbac\Core\Application\Ports\AuditRepository;
 use ModularizeRbac\Core\Application\Ports\Authorizer;
@@ -63,6 +64,7 @@ final class AuditingListener
                 clock: $this->clock,
             );
             $this->repository->save($entry);
+            $this->maybeAppendToHashChain($entry, $payload);
         } catch (Throwable $e) {
             // The audit log is a side observability concern — never
             // let a serialization quirk or transient DB failure crash
@@ -166,6 +168,73 @@ final class AuditingListener
         $result = $walker($payload);
 
         return $result;
+    }
+
+    /**
+     * When `access.audit.hash_chain.enabled` is true, write
+     * `previous_hash` (the entry_hash of the last row in the same
+     * (tenant_id, event_name) partition, or null if first) and
+     * `entry_hash` (sha256 of `previous || canonical(this)`) onto
+     * the just-saved row.
+     *
+     * Implemented as a follow-up UPDATE instead of touching the core
+     * domain. The chain is opt-in so hosts running on v2.7.0 see no
+     * behavior change until they flip the flag.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function maybeAppendToHashChain(AuditEntry $entry, array $payload): void
+    {
+        if (! (bool) config('access.audit.hash_chain.enabled', false)) {
+            return;
+        }
+
+        $tenantId = $entry->tenantId?->value;
+        $eventName = $entry->event->value;
+
+        $prevRow = DB::table('access_audit_log')
+            ->where('event_name', $eventName)
+            ->when(
+                $tenantId === null,
+                fn ($q) => $q->whereNull('tenant_id'),
+                fn ($q) => $q->where('tenant_id', $tenantId),
+            )
+            ->where('id', '!=', $entry->id->value)
+            ->whereNotNull('entry_hash')
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->limit(1)
+            ->first(['entry_hash']);
+
+        $previousHash = $prevRow !== null ? (string) $prevRow->entry_hash : null;
+
+        // Re-read occurred_at as the DB stored it so both write +
+        // verify hash the same string regardless of timezone / format
+        // quirks at insert vs select time.
+        $savedRow = DB::table('access_audit_log')
+            ->where('id', $entry->id->value)
+            ->first(['occurred_at']);
+        $occurredAt = $savedRow !== null
+            ? new \DateTimeImmutable((string) $savedRow->occurred_at)
+            : $entry->occurredAt;
+
+        $canonical = json_encode([
+            'id' => $entry->id->value,
+            'event' => $eventName,
+            'actor_id' => $entry->actorId?->value,
+            'tenant_id' => $tenantId,
+            'payload' => $payload,
+            'occurred_at' => $occurredAt->format(DateTimeInterface::ATOM),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $entryHash = hash('sha256', ($previousHash ?? '').'|'.$canonical);
+
+        DB::table('access_audit_log')
+            ->where('id', $entry->id->value)
+            ->update([
+                'previous_hash' => $previousHash,
+                'entry_hash' => $entryHash,
+            ]);
     }
 
     /**

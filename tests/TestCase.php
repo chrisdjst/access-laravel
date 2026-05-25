@@ -137,6 +137,7 @@ abstract class TestCase extends Orchestra
                 $table->uuid('created_by')->nullable();
                 $table->uuid('updated_by')->nullable();
                 $table->timestamps();
+                $table->index('role_id', 'role_module_permission_role_id_index');
             });
         }
 

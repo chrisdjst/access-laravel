@@ -1,0 +1,43 @@
+name: SDK + Postman drift
+
+on:
+  pull_request:
+    paths:
+      - 'openapi.json'
+      - 'postman.json'
+      - 'sdk-ts/**'
+      - '.github/workflows/sdk-ts-drift.yml'
+
+jobs:
+  check:
+    name: sdk-ts types + postman.json in sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: sdk-ts/package-lock.json
+
+      - name: Install sdk-ts deps
+        working-directory: sdk-ts
+        run: npm ci
+
+      - name: Regenerate types + postman
+        working-directory: sdk-ts
+        run: |
+          npm run generate
+          npm run postman
+
+      - name: Check for drift
+        run: |
+          if ! git diff --exit-code -- sdk-ts/src/types.d.ts postman.json; then
+            echo "::error::sdk-ts types or postman.json drifted from openapi.json."
+            echo "::error::Run \`cd sdk-ts && npm run generate && npm run postman\` locally and commit the result."
+            exit 1
+          fi
+          echo "sdk-ts types + postman.json are in sync."

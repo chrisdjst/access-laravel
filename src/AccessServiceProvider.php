@@ -409,8 +409,17 @@ class AccessServiceProvider extends ServiceProvider
 
     protected function registerRoutes(): void
     {
+        // Always stamp the api-version header on package responses so
+        // SDK consumers can detect contract drift across host upgrades.
+        // Appended after the host-provided middleware list so it runs
+        // closest to the controller (and to the response).
+        $middleware = array_merge(
+            (array) config('access.middleware', ['auth:sanctum']),
+            [\ModularizeRbac\Laravel\Http\Middleware\AddApiVersionHeader::class],
+        );
+
         Route::prefix((string) config('access.route_prefix', 'admin'))
-            ->middleware((array) config('access.middleware', ['auth:sanctum']))
+            ->middleware($middleware)
             ->group(__DIR__.'/../routes/api.php');
     }
 

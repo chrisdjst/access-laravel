@@ -109,7 +109,9 @@ class RoleController extends Controller
             $resources[] = $this->enrich($out);
         }
 
-        return RoleResource::collection($resources);
+        return RoleResource::collection($resources)->additional([
+            'meta' => ['count' => count($resources)],
+        ]);
     }
 
     public function show(string $role): RoleResource

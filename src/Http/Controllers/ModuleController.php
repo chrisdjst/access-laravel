@@ -96,7 +96,9 @@ class ModuleController extends Controller
             $resources[] = $this->enrich($out);
         }
 
-        return ModuleResource::collection($resources);
+        return ModuleResource::collection($resources)->additional([
+            'meta' => ['count' => count($resources)],
+        ]);
     }
 
     public function show(string $id): ModuleResource

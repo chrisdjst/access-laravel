@@ -2,6 +2,12 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.7.0] - Unreleased
+
+### Added
+
+- **`access.audit.log_failures` config** controls the log level at which the audit listener reports persistence failures. Defaults to `'warning'` (matches pre-v2.7 behavior). Accepts any Monolog level (`'error'`, `'critical'`, etc.) or `false` to swallow the failure silently. The main domain flow is unaffected either way — auditing stays best-effort.
+
 ## [2.6.0] - 2026-05-25
 
 Minor release: DX polish. Eloquent factories with useful states for every package model, a publishable seeder demonstrating the canonical use-case flow, and `php artisan access:install` to scaffold a fresh host in one call. Fully backwards compatible with v2.5.x. See [UPGRADING.md](./UPGRADING.md#v25--v26) for details.

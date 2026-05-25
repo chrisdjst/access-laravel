@@ -104,6 +104,19 @@ return [
     */
     'audit' => [
         'enabled' => true,
+
+        /*
+        | When the audit listener fails to persist an entry (DB
+        | unavailable, serialization quirk, etc.), the main domain
+        | flow still completes — auditing is best-effort. The level
+        | at which the failure lands in the Laravel log is
+        | configurable here:
+        |
+        |   'warning' (default), 'error', 'critical', etc — any
+        |       Monolog level.
+        |   false  → swallow silently (do NOT log the failure).
+        */
+        'log_failures' => 'warning',
     ],
 
     /*

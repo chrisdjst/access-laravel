@@ -77,31 +77,37 @@ final class EloquentRoleRepository implements RoleRepository
 
     public function resolveAncestors(Uuid $roleId): array
     {
+        // Single batched walk: every iteration asks for parent_role_id
+        // of every role we've already discovered. Worst case is one
+        // query per hierarchy level instead of one per role.
+        // No recursive CTE here — SQLite's `WITH RECURSIVE` is fine in
+        // 3.8.3+ but the per-driver branching costs more than it saves
+        // for the depths the package targets (≤ 10).
         $ancestors = [];
         $visited = [$roleId->value => true];
-        $currentId = $roleId->value;
+        $frontier = [$roleId->value];
 
-        while (true) {
-            $parentId = RoleEloquent::query()
-                ->whereKey($currentId)
-                ->value('parent_role_id');
+        while ($frontier !== []) {
+            /** @var array<string, string|null> $rows */
+            $rows = RoleEloquent::query()
+                ->whereIn('id', $frontier)
+                ->pluck('parent_role_id', 'id')
+                ->all();
 
-            if ($parentId === null) {
-                break;
+            $nextFrontier = [];
+            foreach ($rows as $parentRaw) {
+                if ($parentRaw === null) {
+                    continue;
+                }
+                $parentStr = (string) $parentRaw;
+                if (isset($visited[$parentStr])) {
+                    continue; // cycle break OR sibling joining same parent
+                }
+                $visited[$parentStr] = true;
+                $ancestors[] = new Uuid($parentStr);
+                $nextFrontier[] = $parentStr;
             }
-            $parentStr = (string) $parentId;
-            if (isset($visited[$parentStr])) {
-                break; // cycle break
-            }
-            $visited[$parentStr] = true;
-
-            // Confirm the parent still exists; orphan pointer stops the walk.
-            if (! RoleEloquent::query()->whereKey($parentStr)->exists()) {
-                break;
-            }
-
-            $ancestors[] = new Uuid($parentStr);
-            $currentId = $parentStr;
+            $frontier = $nextFrontier;
         }
 
         return $ancestors;

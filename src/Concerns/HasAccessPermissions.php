@@ -193,33 +193,43 @@ trait HasAccessPermissions
     private function expandRoleIdsWithAncestors(array $directRoleIds): array
     {
         $visited = [];
-        $stack = [];
+        $result = [];
         foreach ($directRoleIds as $id) {
             $strId = (string) $id;
             if (! isset($visited[$strId])) {
                 $visited[$strId] = true;
-                $stack[] = $strId;
+                $result[] = $strId;
             }
         }
 
-        $cursor = 0;
-        while ($cursor < count($stack)) {
-            $current = $stack[$cursor++];
-            $parentId = \ModularizeRbac\Laravel\Models\Role::query()
-                ->whereKey($current)
-                ->value('parent_role_id');
-            if ($parentId === null) {
-                continue;
+        // Walk the parent chain in BATCHES: each round queries every
+        // role added in the previous round (or the direct list on the
+        // first round) in a single `whereIn`. The loop terminates when
+        // no new parents appear — bounded by the max hierarchy depth,
+        // so worst-case is `depth` queries instead of `nRoles*depth`
+        // individual lookups.
+        $frontier = $result;
+        while ($frontier !== []) {
+            $parents = \ModularizeRbac\Laravel\Models\Role::query()
+                ->whereIn('id', $frontier)
+                ->whereNotNull('parent_role_id')
+                ->pluck('parent_role_id', 'id')
+                ->all();
+
+            $nextFrontier = [];
+            foreach ($parents as $parentId) {
+                $parentStr = (string) $parentId;
+                if (isset($visited[$parentStr])) {
+                    continue; // cycle break + dedupe across siblings
+                }
+                $visited[$parentStr] = true;
+                $result[] = $parentStr;
+                $nextFrontier[] = $parentStr;
             }
-            $parentStr = (string) $parentId;
-            if (isset($visited[$parentStr])) {
-                continue;
-            }
-            $visited[$parentStr] = true;
-            $stack[] = $parentStr;
+            $frontier = $nextFrontier;
         }
 
-        return $stack;
+        return $result;
     }
 
     private function actionAllowed(ModulePermission $permission, string $action): bool

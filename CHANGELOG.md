@@ -2,7 +2,9 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.6.0] - Unreleased
+## [2.6.0] - 2026-05-25
+
+Minor release: DX polish. Eloquent factories with useful states for every package model, a publishable seeder demonstrating the canonical use-case flow, and `php artisan access:install` to scaffold a fresh host in one call. Fully backwards compatible with v2.5.x. See [UPGRADING.md](./UPGRADING.md#v25--v26) for details.
 
 ### Added
 

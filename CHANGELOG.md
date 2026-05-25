@@ -6,6 +6,11 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 
 ### Added
 
+- **Append-only binding history**:
+  - New idempotent migration `2026_06_06_000000_create_role_module_permission_history.php` adds a `role_module_permission_history` table that captures every `create`, `update`, and `delete` on a role-module binding with the actor id, timestamp, and before/after `module_permission_id` values.
+  - `EloquentRoleModulePermissionRepository::save()` / `delete()` write a history row inline; same-state idempotent saves are deduplicated to avoid noise.
+  - New `GET /api/admin/roles/{role}/bindings/history` endpoint (`admin.roles.view`) returns the history with `{data, meta: {total, limit, offset}}` envelope + `?limit= &offset= &since= &module_id=` query params.
+  - The history writer wraps in `try/catch` — hosts on older bridges that haven't run the v2.8 migration see no behavior change.
 - **Soft-delete on roles and languages**:
   - New idempotent migration `2026_06_05_000000_add_soft_deletes_to_roles_and_languages.php` adds `deleted_at` to both tables.
   - `Role` and `Language` Eloquent models now use the `SoftDeletes` trait. List/find queries automatically exclude trashed rows.

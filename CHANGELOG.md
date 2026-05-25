@@ -2,7 +2,9 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.5.0] - Unreleased
+## [2.5.0] - 2026-05-25
+
+Minor release: API polish. Pagination + filters on the list endpoints, a per-user throttle on the bulk endpoints, the new `Access-Api-Version` header on every response, and a generated `openapi.json` with a CI drift gate. Fully backwards compatible with v2.4.x — every existing client sees the same payload shape (with new optional fields added). See [UPGRADING.md](./UPGRADING.md#v24--v25) for opt-in details.
 
 ### Added
 

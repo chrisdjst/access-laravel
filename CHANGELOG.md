@@ -6,6 +6,11 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 
 ### Added
 
+- **PII redaction in audit payloads**:
+  - `AuditingListener::extractPayload()` now walks the payload tree and replaces values whose key matches any pattern in `access.audit.redact_fields` with the literal string `[REDACTED]`.
+  - Matching is case-insensitive substring — `'email'` covers `email`, `EMAIL`, `user_email`, `customer_email`, etc. Recurses into nested arrays.
+  - Default list covers common PII + secret field names: `password`, `api_token`, `remember_token`, `access_token`, `refresh_token`, `secret`, `email`, `cpf`, `ssn`. Hosts extend / replace via config; set to `[]` to disable.
+  - 7 new tests cover top-level redaction, case insensitivity, substring matching, nested arrays, host overrides, the disable case, and regression check on real `ModuleCreated` events.
 - **Telemetry events**:
   - `Access\Events\Telemetry\AbilityResolved` (ability, allowed, source: `direct|ancestor|inheritance|none|malformed`, durationMicros) fires at the end of every `canAccess()` call. Hosts listen to wire Sentry spans, Prometheus counters, or structured logs.
   - `Access\Events\Telemetry\CacheLookup` (namespace, key, hit, version) fires on every read through `CachedLanguageRepository` / `CachedModuleRepository`. Useful for tracking cache hit ratios + spotting invalidation thrash.

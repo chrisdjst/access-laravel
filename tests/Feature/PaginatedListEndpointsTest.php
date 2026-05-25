@@ -8,14 +8,16 @@ beforeEach(function (): void {
     Gate::before(fn (?\Illuminate\Contracts\Auth\Authenticatable $user, string $ability): bool => true);
 });
 
-it('GET /modules without params keeps the v2.4 contract (no meta, full list)', function (): void {
+it('GET /modules without params returns the full list with meta.count only', function (): void {
     $this->postJson('/api/admin/modules', ['slug' => 'a', 'name' => 'A'])->assertCreated();
     $this->postJson('/api/admin/modules', ['slug' => 'b', 'name' => 'B'])->assertCreated();
 
     $response = $this->getJson('/api/admin/modules');
     $response->assertOk()
         ->assertJsonCount(2, 'data')
-        ->assertJsonMissingPath('meta');
+        ->assertJsonPath('meta.count', 2)
+        ->assertJsonMissingPath('meta.total')
+        ->assertJsonMissingPath('meta.limit');
 });
 
 it('GET /modules?limit=&offset= returns a windowed slice with meta', function (): void {
@@ -56,14 +58,15 @@ it('GET /modules?limit=1001 returns 422', function (): void {
     $this->getJson('/api/admin/modules?limit=1001')->assertStatus(422);
 });
 
-it('GET /roles without pagination params keeps the v2.4 contract', function (): void {
+it('GET /roles without pagination params returns full list with meta.count only', function (): void {
     $this->postJson('/api/admin/roles', ['name' => 'r1', 'guard_name' => 'admin'])->assertCreated();
     $this->postJson('/api/admin/roles', ['name' => 'r2', 'guard_name' => 'admin'])->assertCreated();
 
     $response = $this->getJson('/api/admin/roles');
     $response->assertOk()
         ->assertJsonCount(2, 'data')
-        ->assertJsonMissingPath('meta');
+        ->assertJsonPath('meta.count', 2)
+        ->assertJsonMissingPath('meta.total');
 });
 
 it('GET /roles?limit= returns paginated envelope', function (): void {

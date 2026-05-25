@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use LogicException;
 use ModularizeRbac\Laravel\Database\Factories\RoleFactory;
 
@@ -29,6 +30,7 @@ class Role extends Model
 {
     /** @use HasFactory<RoleFactory> */
     use HasFactory;
+    use SoftDeletes;
 
     public $incrementing = false;
 

@@ -6,12 +6,14 @@ namespace ModularizeRbac\Laravel\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use ModularizeRbac\Laravel\Database\Factories\LanguageFactory;
 
 class Language extends Model
 {
     /** @use HasFactory<LanguageFactory> */
     use HasFactory;
+    use SoftDeletes;
 
     public $incrementing = false;
 

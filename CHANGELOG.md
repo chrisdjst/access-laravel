@@ -2,6 +2,23 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.8.0] - Unreleased
+
+### Added
+
+- **Soft-delete on roles and languages**:
+  - New idempotent migration `2026_06_05_000000_add_soft_deletes_to_roles_and_languages.php` adds `deleted_at` to both tables.
+  - `Role` and `Language` Eloquent models now use the `SoftDeletes` trait. List/find queries automatically exclude trashed rows.
+  - `DELETE /api/admin/roles/{role}` switched from hard delete to soft delete. The row stays with `deleted_at` set; subsequent `GET` returns 404; listings exclude it.
+  - New `POST /api/admin/roles/{role}/restore` endpoint reverses a soft delete (returns 200 with the restored role + 422 when the row isn't trashed + 404 when missing).
+  - `EloquentRoleRepository` implements the new `modularize-rbac/core` ^1.9 port methods (`softDelete`, `restore`, `findIncludingTrashed`). The original `delete()` stays as a true hard delete via `forceDelete()` for hosts that need it.
+  - `RoleMapper` round-trips `deleted_at` between the domain entity and the Eloquent row.
+  - `ImportCommand` `--strategy=replace` updated to `forceDelete()` roles + languages so the wipe-and-insert flow doesn't trip on the new soft-delete semantic.
+
+### Changed
+
+- `composer.json` requires `modularize-rbac/core: ^1.9` (was `^1.8`). Additive bump — pulls in `Role`/`Language` soft-delete primitives + `RestoreRole` use-case + the new port methods + `PermissionActionRegistry`.
+
 ## [2.7.0] - 2026-05-25
 
 Minor release: observability + security. Telemetry events for authz checks and cache lookups, configurable audit log levels, PII redaction in audit payloads, an opt-in tamper-evident hash chain on the audit log, and a `verify` command for integrity audits. Fully backwards compatible with v2.6.x — every new behavior is opt-in or preserves the v2.6 default. See [UPGRADING.md](./UPGRADING.md#v26--v27) for details.

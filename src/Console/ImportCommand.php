@@ -88,10 +88,11 @@ class ImportCommand extends Command
                 if ($strategy === 'replace') {
                     Translation::query()->delete();
                     RoleModulePermission::query()->delete();
-                    Role::query()->delete();
+                    // Force-delete to bypass SoftDeletes scopes — replace mode wipes everything.
+                    Role::withTrashed()->forceDelete();
                     ModulePermission::query()->delete();
                     Module::query()->withTrashed()->forceDelete();
-                    Language::query()->delete();
+                    Language::withTrashed()->forceDelete();
                 }
 
                 $this->importLanguages($payload['languages'] ?? []);

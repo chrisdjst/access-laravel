@@ -21,6 +21,7 @@ use ModularizeRbac\Core\Application\Role\DeleteRole\DeleteRole;
 use ModularizeRbac\Core\Application\Role\GetRolePermissionMatrix\GetRolePermissionMatrix;
 use ModularizeRbac\Core\Application\Role\ListRoles\ListRoles;
 use ModularizeRbac\Core\Application\Role\ListRoles\ListRolesPaginated;
+use ModularizeRbac\Core\Application\Role\RestoreRole\RestoreRole;
 use ModularizeRbac\Core\Application\Role\RoleFilter;
 use ModularizeRbac\Core\Application\Role\RoleOutput;
 use ModularizeRbac\Core\Application\Shared\Pagination;
@@ -53,6 +54,7 @@ class RoleController extends Controller
         private readonly CreateRole $createRoleUseCase,
         private readonly UpdateRole $updateRoleUseCase,
         private readonly DeleteRole $deleteRoleUseCase,
+        private readonly RestoreRole $restoreRoleUseCase,
         private readonly CloneRole $cloneRoleUseCase,
         private readonly AssignUsersToRole $assignUsersToRoleUseCase,
         private readonly SyncRoleModules $syncRoleModules,
@@ -147,6 +149,13 @@ class RoleController extends Controller
         $this->deleteRoleUseCase->execute($role);
 
         return response()->json(null, 204);
+    }
+
+    public function restore(string $role): RoleResource
+    {
+        $output = $this->restoreRoleUseCase->execute($role);
+
+        return new RoleResource($this->enrich($output));
     }
 
     public function clone(CloneRoleRequest $request, string $role): JsonResponse

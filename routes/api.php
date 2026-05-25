@@ -36,6 +36,7 @@ Route::post('roles', [RoleController::class, 'store']);
 Route::get('roles/{role}', [RoleController::class, 'show']);
 Route::put('roles/{role}', [RoleController::class, 'update']);
 Route::delete('roles/{role}', [RoleController::class, 'destroy']);
+Route::post('roles/{role}/restore', [RoleController::class, 'restore']);
 Route::put('roles/{role}/modules', [RoleController::class, 'syncModules']);
 Route::get('roles/{role}/permission-matrix', [RoleController::class, 'permissionMatrix']);
 

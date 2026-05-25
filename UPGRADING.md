@@ -4,6 +4,71 @@ This guide consolidates the upgrade notes for major and minor versions of the br
 
 ---
 
+## v2.4 → v2.5
+
+`v2.5.0` is fully backwards compatible with `v2.4.x`. No schema changes, no breaking API changes. The release ships four polish PRs that hosts can opt into incrementally.
+
+### Composer bump
+
+```bash
+composer require modularize-rbac/laravel:^2.5
+```
+
+Pulls `modularize-rbac/core: ^1.8` (additive — `Pagination`, `PaginatedResult`, `ModuleFilter`, `RoleFilter` VOs + `searchPaginated()` port methods + `ListModulesPaginated` / `ListRolesPaginated` use-cases).
+
+### What's new for clients
+
+**Pagination + filters on `GET /modules` and `GET /roles`** (opt-in via query params):
+
+```bash
+GET /api/admin/modules?limit=10&offset=0&is_active=true&root_module_id=...&slug_like=event
+GET /api/admin/roles?limit=20&offset=0&guard=admin&is_system=false&level_min=10&level_max=90&has_parent=true
+```
+
+Without any query param the endpoints return the full list (v2.4 contract) but now include `meta.count`:
+
+```json
+{ "data": [ ... ], "meta": { "count": 42 } }
+```
+
+With pagination params, the envelope becomes:
+
+```json
+{ "data": [ ... ], "meta": { "total": 142, "limit": 10, "offset": 0 } }
+```
+
+`meta.count` only appears on the non-paginated branch, so clients can distinguish the two paths by the meta keys present.
+
+**`Access-Api-Version` header** is stamped on every response (value: `"1"`). Bumps only on breaking response shape changes.
+
+**Rate limiting on bulk endpoints** — default 10 attempts/minute per authenticated user on `POST/DELETE /api/admin/modules/bulk`, `POST /api/admin/roles/{role}/clone`, and `POST /api/admin/roles/{role}/users/bulk`. Override via config:
+
+```php
+// config/access.php
+'rate_limit' => ['bulk' => '30,1'],   // 30/min
+// or to disable:
+'rate_limit' => ['bulk' => null],
+```
+
+**`openapi.json`** in the package repo root. Point your SDK generator (Postman, openapi-generator, Stainless, etc.) at it. Hosts that publish their own API docs site can copy the file into their docs build pipeline.
+
+### Generate the spec locally
+
+```bash
+php artisan access:openapi --update   # rewrite openapi.json after editing OpenApiDefinition.php
+php artisan access:openapi --check    # CI-friendly drift check (exits 1 on mismatch)
+```
+
+The package CI has a workflow (`.github/workflows/openapi-drift.yml`) that runs this check on every PR.
+
+### Backwards-compat notes
+
+- **Filter validation**: `?level_min=50&level_max=10` returns 422 because the band is inverted. Hosts that previously passed silly values silently are now told.
+- **`limit=` cap**: the max accepted is 1000. Requesting more returns 422.
+- **No-params response shape**: now includes a small `meta: { count: N }` object. Clients reading `data[*]` are unaffected. Clients explicitly asserting `meta` is absent need to relax that assertion.
+
+---
+
 ## v2.3 → v2.4
 
 `v2.4.0` is fully backwards compatible with `v2.3.x`. No API changes. Two minor mechanical steps to apply locally:

@@ -102,3 +102,28 @@ npm run dev      # watch mode
 ```
 
 Outputs `dist/index.js` + `dist/index.d.ts` with sourcemaps and declaration maps.
+
+## Storybook
+
+Every component ships with a Storybook story documenting its props + at least one usage scenario. Run locally:
+
+```bash
+npm run storybook        # http://localhost:6006
+npm run build-storybook  # static build → storybook-static/
+```
+
+Stories run against `msw` mock handlers (`.storybook/msw-handlers.ts`) so they work fully offline. Components are wrapped in:
+
+- `@radix-ui/themes` (light, indigo accent, medium radius).
+- A fresh `QueryClient` per story (no cross-story cache pollution).
+- `RbacProvider` built on `@modularize-rbac/sdk-ts`.
+
+## Testing
+
+```bash
+npm test               # vitest run
+npm run test:watch     # watch mode
+npm run test:coverage  # vitest run --coverage
+```
+
+Tests use Vitest + msw via `setupServer` in Node. Coverage thresholds: 80% statements / lines, 70% branches, 80% functions.

@@ -39,6 +39,7 @@ use ModularizeRbac\Core\Domain\Shared\Clock;
 use ModularizeRbac\Core\Domain\Shared\IdGenerator;
 use ModularizeRbac\Laravel\Audit\AuditingListener;
 use ModularizeRbac\Laravel\Authorization\GateAuthorizer;
+use ModularizeRbac\Laravel\Authorization\ModuleHierarchyIndex;
 use ModularizeRbac\Laravel\Cache\CacheInvalidationListener;
 use ModularizeRbac\Laravel\Cache\CachedLanguageRepository;
 use ModularizeRbac\Laravel\Cache\CachedModuleRepository;
@@ -207,6 +208,12 @@ class AccessServiceProvider extends ServiceProvider
     {
         $this->app->singleton(Clock::class, SystemClock::class);
         $this->app->singleton(IdGenerator::class, UuidV4IdGenerator::class);
+
+        // Scoped: one instance per request, so the inheritance walk
+        // memoizes module-table reads within a request lifecycle.
+        $this->app->scoped(ModuleHierarchyIndex::class, function (Application $app): ModuleHierarchyIndex {
+            return new ModuleHierarchyIndex($app->make(\ModularizeRbac\Core\Application\Ports\ModuleRepository::class));
+        });
 
         $this->app->singleton(UnitOfWork::class, function (Application $app): LaravelUnitOfWork {
             return new LaravelUnitOfWork(

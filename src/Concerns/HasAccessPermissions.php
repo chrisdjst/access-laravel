@@ -11,7 +11,7 @@ use ModularizeRbac\Core\Domain\Module\ModuleSlug;
 use ModularizeRbac\Core\Domain\Permission\PermissionName;
 use ModularizeRbac\Core\Domain\RoleModulePermission\PermissionInheritanceResolver;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
-use ModularizeRbac\Laravel\Models\Module;
+use ModularizeRbac\Laravel\Authorization\ModuleHierarchyIndex;
 use ModularizeRbac\Laravel\Models\ModulePermission;
 use ModularizeRbac\Laravel\Models\Role;
 use ModularizeRbac\Laravel\Models\RoleModulePermission;
@@ -129,32 +129,20 @@ trait HasAccessPermissions
             $flagsBySlug[$slug][] = $this->toDomainFlags($binding->permission);
         }
 
-        // Parent lookup index: child slug → parent ModuleSlug.
-        // Modules with no parent or unknown ids end the walk.
-        $parentBySlug = [];
-        $allModules = Module::query()->select(['id', 'slug', 'root_module_id'])->get();
-        $slugById = [];
-        foreach ($allModules as $module) {
-            $slugById[(string) $module->id] = (string) $module->slug;
-        }
-        foreach ($allModules as $module) {
-            $parentId = $module->root_module_id;
-            if ($parentId === null) {
-                continue;
-            }
-            $parentSlug = $slugById[(string) $parentId] ?? null;
-            if ($parentSlug === null) {
-                continue;
-            }
-            $parentBySlug[(string) $module->slug] = new ModuleSlug($parentSlug);
-        }
+        // Parent lookup: go through the per-request scoped index,
+        // which itself reads `ModuleRepository::allActiveTree()` —
+        // cache-fronted by CachedModuleRepository (v2.3.0). First
+        // call within a request pays a memoize cost; subsequent
+        // canAccess() calls are O(1) per resolver step.
+        /** @var ModuleHierarchyIndex $index */
+        $index = app(ModuleHierarchyIndex::class);
 
         $resolver = new PermissionInheritanceResolver();
 
         return $resolver->isAllowed(
             $name,
             flagsForSlug: static fn (ModuleSlug $s): array => $flagsBySlug[$s->value] ?? [],
-            parentOfSlug: static fn (ModuleSlug $s): ?ModuleSlug => $parentBySlug[$s->value] ?? null,
+            parentOfSlug: static fn (ModuleSlug $s): ?ModuleSlug => $index->parentOf($s),
         );
     }
 

@@ -6,6 +6,12 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 
 ### Added
 
+- **`php artisan access:install` scaffold command**:
+  - Runs `vendor:publish --tag=access-config` + `migrate` in one call.
+  - `--with-lang` adds `vendor:publish --tag=access-lang`; `--with-seeder` adds the seeder publish.
+  - `--no-config` / `--no-migrate` skip individual steps so the command composes with custom workflows.
+  - Prints the `HasAccessPermissions` trait snippet at the end. Does NOT auto-edit the User model (left to the host) — the snippet copies cleanly.
+  - Matches Laravel's `sanctum:install` ergonomics.
 - **Publishable `AccessSeeder` example**:
   - Stub at `database/seeders/AccessSeeder.stub`. Run `php artisan vendor:publish --tag=access-seeder` to copy it as `database/seeders/AccessSeeder.php` in the host.
   - Demonstrates the canonical flow: `CreateModule` → `CreateRole` → `SyncRoleModules` use-cases. Creates a default English language, three modules (events/billing/reports), an admin role with full matrix, and a viewer role with read-only access.

@@ -152,6 +152,7 @@ class AccessServiceProvider extends ServiceProvider
             \ModularizeRbac\Laravel\Console\ExportCommand::class,
             \ModularizeRbac\Laravel\Console\ImportCommand::class,
             \ModularizeRbac\Laravel\Console\OpenApiCommand::class,
+            \ModularizeRbac\Laravel\Console\InstallCommand::class,
         ]);
     }
 

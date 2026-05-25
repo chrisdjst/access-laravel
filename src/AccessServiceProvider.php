@@ -94,6 +94,14 @@ class AccessServiceProvider extends ServiceProvider
             __DIR__.'/../lang' => $this->app->langPath('vendor/access'),
         ], 'access-lang');
 
+        // Publish the example seeder as `database/seeders/AccessSeeder.php`
+        // in the host's app. Renaming the .stub extension prevents the
+        // file from being loaded by Composer's autoloader of the package
+        // itself (it's source-by-design — hosts edit it after publish).
+        $this->publishes([
+            __DIR__.'/../database/seeders/AccessSeeder.stub' => database_path('seeders/AccessSeeder.php'),
+        ], 'access-seeder');
+
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->registerBulkLimiter();

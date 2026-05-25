@@ -6,6 +6,10 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 
 ### Added
 
+- **Publishable `AccessSeeder` example**:
+  - Stub at `database/seeders/AccessSeeder.stub`. Run `php artisan vendor:publish --tag=access-seeder` to copy it as `database/seeders/AccessSeeder.php` in the host.
+  - Demonstrates the canonical flow: `CreateModule` → `CreateRole` → `SyncRoleModules` use-cases. Creates a default English language, three modules (events/billing/reports), an admin role with full matrix, and a viewer role with read-only access.
+  - README quickstart now references the seeder as the recommended first step after `migrate`.
 - **Eloquent factories for every package model** under `database/factories/`:
   - `ModuleFactory` — states: `inactive()`, `withParent($module)`, `trashed()`.
   - `RoleFactory` — states: `system()`, `withParent($role)`, `forGuard($name)`, `forTenant($uuid)`.

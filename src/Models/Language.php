@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use ModularizeRbac\Laravel\Database\Factories\LanguageFactory;
 
 class Language extends Model
 {
+    /** @use HasFactory<LanguageFactory> */
+    use HasFactory;
+
     public $incrementing = false;
 
     protected $keyType = 'string';
@@ -25,5 +30,10 @@ class Language extends Model
             'is_default' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function newFactory(): LanguageFactory
+    {
+        return LanguageFactory::new();
     }
 }

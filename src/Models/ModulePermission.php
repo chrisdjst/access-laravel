@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use ModularizeRbac\Laravel\Database\Factories\ModulePermissionFactory;
 
 /**
  * Persistence-only Eloquent model. The flag→action mapping moved to
@@ -14,6 +16,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ModulePermission extends Model
 {
+    /** @use HasFactory<ModulePermissionFactory> */
+    use HasFactory;
+
     public $incrementing = false;
 
     protected $keyType = 'string';
@@ -39,5 +44,10 @@ class ModulePermission extends Model
             'is_listing_allowed' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function newFactory(): ModulePermissionFactory
+    {
+        return ModulePermissionFactory::new();
     }
 }

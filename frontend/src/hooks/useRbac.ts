@@ -48,17 +48,19 @@ type LanguagePayload = NonNullable<paths['/languages']['post']['requestBody']> e
  * Unwraps the `{ data, error }` shape openapi-fetch returns. Throws on
  * error so React Query's onError fires. We re-throw the decoded body so
  * hosts can pattern-match on the spec's Error schema.
+ *
+ * 204 No Content responses (e.g. DELETE) resolve with `data === undefined`
+ * + `error === undefined`. We return `null` in that case — mutations
+ * don't care about the body shape, and queries that targeted a 204 are
+ * broken anyway.
  */
-async function unwrap<T>(promise: Promise<{ data?: T; error?: unknown }>): Promise<T> {
+async function unwrap<T>(promise: Promise<{ data?: T; error?: unknown }>): Promise<T | null> {
   const { data, error } = await promise;
   if (error !== undefined) {
     throw error;
   }
-  if (data === undefined) {
-    throw new Error('Empty response body.');
-  }
 
-  return data;
+  return (data ?? null) as T | null;
 }
 
 // ============================================================================

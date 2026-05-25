@@ -117,6 +117,30 @@ return [
         |   false  → swallow silently (do NOT log the failure).
         */
         'log_failures' => 'warning',
+
+        /*
+        | When the listener extracts a payload from a domain event, any
+        | field whose KEY contains one of these substrings (case-
+        | insensitive) is replaced with the literal string `[REDACTED]`
+        | before persistence. Useful for GDPR / LGPD compliance —
+        | accidentally landing a user's email or token in the audit
+        | log is hard to undo after the fact.
+        |
+        | Defaults cover the common PII + secret field names. Hosts can
+        | extend / replace this list (e.g. add 'cnpj', 'phone'). Set
+        | to [] to disable redaction entirely.
+        */
+        'redact_fields' => [
+            'password',
+            'api_token',
+            'remember_token',
+            'access_token',
+            'refresh_token',
+            'secret',
+            'email',
+            'cpf',
+            'ssn',
+        ],
     ],
 
     /*

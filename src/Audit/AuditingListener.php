@@ -121,7 +121,51 @@ final class AuditingListener
             $payload[$name] = $this->serializeValue($value);
         }
 
-        return $payload;
+        return $this->redactSensitive($payload);
+    }
+
+    /**
+     * Walk an associative payload tree replacing values whose key
+     * matches any pattern from `access.audit.redact_fields` with the
+     * literal string `[REDACTED]`. Matching is case-insensitive
+     * substring — `'email'` covers both top-level `email` keys AND
+     * nested `user_email` / `customer_email` keys.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function redactSensitive(array $payload): array
+    {
+        $patterns = (array) config('access.audit.redact_fields', []);
+        if ($patterns === []) {
+            return $payload;
+        }
+        $normalized = array_map(static fn ($p) => strtolower((string) $p), $patterns);
+
+        $walker = static function (mixed $value) use (&$walker, $normalized): mixed {
+            if (! is_array($value)) {
+                return $value;
+            }
+            $out = [];
+            foreach ($value as $k => $v) {
+                $lower = is_string($k) ? strtolower($k) : '';
+                $matches = false;
+                foreach ($normalized as $needle) {
+                    if ($needle !== '' && str_contains($lower, $needle)) {
+                        $matches = true;
+                        break;
+                    }
+                }
+                $out[$k] = $matches ? '[REDACTED]' : $walker($v);
+            }
+
+            return $out;
+        };
+
+        /** @var array<string, mixed> $result */
+        $result = $walker($payload);
+
+        return $result;
     }
 
     /**

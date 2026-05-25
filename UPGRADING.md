@@ -4,6 +4,65 @@ This guide consolidates the upgrade notes for major and minor versions of the br
 
 ---
 
+## v2.5 → v2.6
+
+`v2.6.0` is fully backwards compatible with `v2.5.x`. No schema changes, no API changes. The release ships three DX tools you can opt into when convenient.
+
+### Composer bump
+
+```bash
+composer require modularize-rbac/laravel:^2.6
+```
+
+No `modularize-rbac/core` bump.
+
+### One-command install (new)
+
+For fresh hosts:
+
+```bash
+composer require modularize-rbac/laravel
+php artisan access:install
+```
+
+This replaces the previous 3-step recipe (`vendor:publish --tag=access-config` → `migrate` → "now add the trait to User"). Flags:
+
+| Flag | What it does |
+|---|---|
+| `--no-config` | Skip publishing `config/access.php` |
+| `--no-migrate` | Skip running migrations |
+| `--with-lang` | Also publish `lang/{en,pt_BR}/exceptions.php` |
+| `--with-seeder` | Also publish the example `AccessSeeder.php` |
+
+The command does NOT auto-edit your User model — it prints the trait snippet at the end so you can copy it cleanly into your own file.
+
+### Factories (new)
+
+Every package model now has an Eloquent factory:
+
+```php
+use ModularizeRbac\Laravel\Models\Module;
+use ModularizeRbac\Laravel\Models\Role;
+
+Module::factory()->count(50)->create();
+Role::factory()->system()->withParent($parent)->create();
+```
+
+States: `Module::factory()->inactive() / withParent() / trashed()`, `Role::factory()->system() / withParent() / forGuard() / forTenant()`, `Permission::factory()->forModule() / action()`, `Language::factory()->isDefault() / inactive()`, `ModulePermission::factory()->allowAll() / readOnly()`.
+
+The factory namespace is registered in production autoload, so host seeders + tests can use them without extra config.
+
+### Example seeder (new)
+
+```bash
+php artisan vendor:publish --tag=access-seeder
+php artisan db:seed --class=AccessSeeder
+```
+
+Creates a default English language, three modules, an admin role with full matrix, and a viewer role with read-only access — all routed through the `CreateModule` / `CreateRole` / `SyncRoleModules` use-cases so domain events + audit log + Spatie sync all fire. Edit it to match your app, or copy the pattern.
+
+---
+
 ## v2.4 → v2.5
 
 `v2.5.0` is fully backwards compatible with `v2.4.x`. No schema changes, no breaking API changes. The release ships four polish PRs that hosts can opt into incrementally.

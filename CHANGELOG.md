@@ -2,6 +2,17 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.3.0] - Unreleased
+
+### Added
+
+- **Read cache for language + module repositories** (opt-in, defaults to on):
+  - New `CachedLanguageRepository` and `CachedModuleRepository` decorators backed by Laravel's `Cache` contract. `find`, `findBySlug` / `findByCode`, `default`, `all`, and `allActiveTree` consult the cache before the DB.
+  - Version-key invalidation: each namespace (`access:lang`, `access:module`) keeps an integer in cache; mutations bump it so subsequent reads transparently miss without explicit per-key flushes. Works on every Laravel cache store (file, redis, memcached, array).
+  - Defence-in-depth: a `CacheInvalidationListener` subscribes to the relevant domain events (`LanguageDefaultChanged`, `ModuleCreated/Updated/Deleted`) and bumps the version when writes happen outside the repository (Tinker, raw queries, console commands that still dispatch the event).
+  - New config block: `access.cache` (`enabled`, `store`, `ttl`). Set `enabled` to `false` to bypass the layer entirely — bindings fall back to the plain Eloquent adapters.
+  - `null` returns are cached too (negative-cache friendly via a wrapper sentinel that survives `Cache::has()` semantics across stores).
+
 ## [2.2.0] - 2026-05-24
 
 Minor release: ships role cloning, bulk module operations, bulk user-to-role assignment, opt-in permission inheritance via module hierarchy, role hierarchy via `parent_role_id`, and import/export console commands. Fully backwards compatible with v2.1.x — see [UPGRADING.md](./UPGRADING.md#v21--v22) for opt-in details.

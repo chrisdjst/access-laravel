@@ -6,6 +6,8 @@ namespace ModularizeRbac\Laravel;
 
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
+use Illuminate\Contracts\Cache\Repository as CacheContract;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
@@ -37,6 +39,10 @@ use ModularizeRbac\Core\Domain\Shared\Clock;
 use ModularizeRbac\Core\Domain\Shared\IdGenerator;
 use ModularizeRbac\Laravel\Audit\AuditingListener;
 use ModularizeRbac\Laravel\Authorization\GateAuthorizer;
+use ModularizeRbac\Laravel\Cache\CacheInvalidationListener;
+use ModularizeRbac\Laravel\Cache\CachedLanguageRepository;
+use ModularizeRbac\Laravel\Cache\CachedModuleRepository;
+use ModularizeRbac\Laravel\Cache\CacheVersion;
 use ModularizeRbac\Laravel\Eloquent\Mappers\AuditEntryMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\LanguageMapper;
 use ModularizeRbac\Laravel\Eloquent\Mappers\ModuleMapper;
@@ -249,13 +255,26 @@ class AccessServiceProvider extends ServiceProvider
         $this->app->singleton(RoleModulePermissionMapper::class);
         $this->app->singleton(AuditEntryMapper::class);
 
-        $this->app->bind(ModuleRepository::class, EloquentModuleRepository::class);
         $this->app->bind(RoleRepository::class, EloquentRoleRepository::class);
         $this->app->bind(PermissionRepository::class, EloquentPermissionRepository::class);
-        $this->app->bind(LanguageRepository::class, EloquentLanguageRepository::class);
         $this->app->bind(TranslationRepository::class, EloquentTranslationRepository::class);
         $this->app->bind(RoleModulePermissionRepository::class, EloquentRoleModulePermissionRepository::class);
         $this->app->bind(AuditRepository::class, EloquentAuditRepository::class);
+
+        $this->registerCacheableRepository(
+            ModuleRepository::class,
+            EloquentModuleRepository::class,
+            'access:module',
+            fn (ModuleRepository $inner, CacheContract $cache, CacheVersion $ver, int $ttl) =>
+                new CachedModuleRepository($inner, $cache, $ver, $ttl),
+        );
+        $this->registerCacheableRepository(
+            LanguageRepository::class,
+            EloquentLanguageRepository::class,
+            'access:lang',
+            fn (LanguageRepository $inner, CacheContract $cache, CacheVersion $ver, int $ttl) =>
+                new CachedLanguageRepository($inner, $cache, $ver, $ttl),
+        );
 
         $this->app->bind(UserRoleResolver::class, function (Application $app): EloquentUserRoleResolver {
             return new EloquentUserRoleResolver(
@@ -268,6 +287,87 @@ class AccessServiceProvider extends ServiceProvider
                 $app->make(ConnectionResolverInterface::class)->connection(),
             );
         });
+
+        $this->registerCacheInvalidationListener();
+    }
+
+    /**
+     * Bind `$portInterface` either to a {@see CachedLanguageRepository}-style
+     * decorator (when `config('access.cache.enabled')` is true) or
+     * directly to the underlying Eloquent adapter.
+     *
+     * @template T of object
+     *
+     * @param  class-string<T>  $portInterface
+     * @param  class-string<T>  $eloquentClass
+     * @param  string  $cacheNamespace  used as the prefix for the version key + entries
+     * @param  callable(T, CacheContract, CacheVersion, int): T  $decoratorFactory
+     */
+    protected function registerCacheableRepository(
+        string $portInterface,
+        string $eloquentClass,
+        string $cacheNamespace,
+        callable $decoratorFactory,
+    ): void {
+        // Always register a singleton closure that reads config at
+        // resolution time. Hosts can flip access.cache.enabled at
+        // runtime + call $app->forgetInstance($port) to swap.
+        $this->app->singleton($portInterface, function (Application $app) use ($eloquentClass, $cacheNamespace, $decoratorFactory) {
+            $inner = $app->make($eloquentClass);
+
+            if (! (bool) config('access.cache.enabled', true)) {
+                return $inner;
+            }
+
+            $store = config('access.cache.store');
+            $storeName = is_string($store) && $store !== '' ? $store : null;
+            $cache = $app->make(CacheFactory::class)->store($storeName);
+            $version = new CacheVersion($cache, $cacheNamespace);
+            $ttl = (int) config('access.cache.ttl', 3600);
+
+            return $decoratorFactory($inner, $cache, $version, $ttl);
+        });
+    }
+
+    /**
+     * Wire the cache invalidator to the relevant domain events so
+     * direct DB writes (Tinker, raw queries, console commands)
+     * still flush the read cache via the dispatched event.
+     */
+    protected function registerCacheInvalidationListener(): void
+    {
+        if (! (bool) config('access.cache.enabled', true)) {
+            return;
+        }
+
+        $this->app->singleton(CacheInvalidationListener::class, function (Application $app): CacheInvalidationListener {
+            $store = config('access.cache.store');
+            $storeName = is_string($store) && $store !== '' ? $store : null;
+            $cache = $app->make(CacheFactory::class)->store($storeName);
+
+            return new CacheInvalidationListener(
+                languageVersion: new CacheVersion($cache, 'access:lang'),
+                moduleVersion: new CacheVersion($cache, 'access:module'),
+            );
+        });
+
+        $events = $this->app->make(Dispatcher::class);
+        $events->listen(
+            \ModularizeRbac\Core\Domain\Events\LanguageDefaultChanged::class,
+            [CacheInvalidationListener::class, 'onLanguageDefaultChanged'],
+        );
+        $events->listen(
+            \ModularizeRbac\Core\Domain\Events\ModuleCreated::class,
+            [CacheInvalidationListener::class, 'onModuleCreated'],
+        );
+        $events->listen(
+            \ModularizeRbac\Core\Domain\Events\ModuleUpdated::class,
+            [CacheInvalidationListener::class, 'onModuleUpdated'],
+        );
+        $events->listen(
+            \ModularizeRbac\Core\Domain\Events\ModuleDeleted::class,
+            [CacheInvalidationListener::class, 'onModuleDeleted'],
+        );
     }
 
     protected function registerRoutes(): void

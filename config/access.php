@@ -108,6 +108,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Read cache (CachedLanguageRepository / CachedModuleRepository)
+    |--------------------------------------------------------------------------
+    |
+    | Decorate the language + module repositories with an in-process
+    | read cache backed by Laravel's `Cache` contract. Writes through
+    | the use-cases automatically bump a version key, so cached reads
+    | stay coherent without explicit per-key flushes.
+    |
+    |   enabled — turn the layer on/off. Defaults to true.
+    |   store   — Laravel cache store name (file/redis/etc). null = default.
+    |   ttl     — TTL in seconds for individual cache entries.
+    |             Default 3600 = 1 hour. Long-lived entries are fine
+    |             since version-key invalidation already invalidates
+    |             on writes; the TTL just bounds the orphan footprint.
+    */
+    'cache' => [
+        'enabled' => true,
+        'store' => null,
+        'ttl' => 3600,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Permission inheritance via module hierarchy
     |--------------------------------------------------------------------------
     |

@@ -4,6 +4,51 @@ This guide consolidates the upgrade notes for major and minor versions of the br
 
 ---
 
+## v2.2 → v2.3
+
+`v2.3.0` is fully backwards compatible with `v2.2.x`. No schema or API changes — the only addition is a read cache layer that's **on by default**.
+
+### Composer bump
+
+```bash
+composer require modularize-rbac/laravel:^2.3
+```
+
+No `modularize-rbac/core` bump required (still `^1.7`).
+
+### Read cache (enabled by default)
+
+The language + module repositories are now decorated with a Laravel-cache-backed read cache. Behavior:
+
+- Reads (`find`, `findBySlug`/`findByCode`, `default`, `all`, `allActiveTree`) consult the cache first.
+- Writes through the use-cases auto-invalidate via a version-key bump.
+- A defence-in-depth event listener bumps the version when `LanguageDefaultChanged` / `ModuleCreated|Updated|Deleted` are dispatched — direct DB writes that still emit the event keep the cache coherent.
+
+New config block:
+
+```php
+// config/access.php
+'cache' => [
+    'enabled' => true,   // false to bypass the layer entirely
+    'store' => null,     // null = default Laravel cache store
+    'ttl' => 3600,       // seconds
+],
+```
+
+To disable the layer entirely:
+
+```php
+'cache' => ['enabled' => false],
+```
+
+Hosts running on a cache store with broken `null` semantics (rare) can lower the TTL or set `enabled => false` — the wrapper sentinel that survives `Cache::has()` makes the layer safe on all default stores tested (`array`, `file`, `database`, `redis`).
+
+### Why this is opt-out instead of opt-in
+
+Unlike the v2.2 inheritance feature, the cache is correctness-neutral by construction: every mutation that goes through a use-case bumps the version, and the event listener catches the rest. The default-on stance gives hosts the performance win without an extra config knob to flip.
+
+---
+
 ## v2.1 → v2.2
 
 `v2.2.0` is fully backwards compatible with `v2.1.x`. The notes below describe additive features and one new migration to apply.

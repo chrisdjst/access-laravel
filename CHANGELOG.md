@@ -2,7 +2,9 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.3.0] - Unreleased
+## [2.3.0] - 2026-05-25
+
+Minor release: read cache for language + module repositories. Fully backwards compatible with v2.2.x — the layer is opt-in via config but defaults to `enabled = true`. See [UPGRADING.md](./UPGRADING.md#v22--v23) for details.
 
 ### Added
 

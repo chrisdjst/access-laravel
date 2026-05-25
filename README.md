@@ -47,7 +47,13 @@ From a fresh Laravel 11 / 12 host to a first authorized request in roughly five 
 composer require modularize-rbac/laravel
 php artisan vendor:publish --tag=access-config
 php artisan migrate
+
+# Optional: get an example seeder you can edit + run
+php artisan vendor:publish --tag=access-seeder
+php artisan db:seed --class=AccessSeeder
 ```
+
+The seeder demonstrates the canonical flow (CreateModule → CreateRole → SyncRoleModules use-cases) and creates three modules + admin/viewer roles wired up correctly. Edit it to match your app, or read it as documentation and write your own.
 
 ### 2. Wire the User model
 

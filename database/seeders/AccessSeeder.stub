@@ -1,0 +1,116 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModule;
+use ModularizeRbac\Core\Application\Module\CreateModule\CreateModuleInput;
+use ModularizeRbac\Core\Application\Role\CreateRole\CreateRole;
+use ModularizeRbac\Core\Application\Role\CreateRole\CreateRoleInput;
+use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModules;
+use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModulesInput;
+use ModularizeRbac\Laravel\Models\Language;
+
+/**
+ * Example seeder for modularize-rbac/laravel. Publish via:
+ *
+ *   php artisan vendor:publish --tag=access-seeder
+ *
+ * Then add the class to your `DatabaseSeeder::run()` or call
+ * directly: `php artisan db:seed --class=AccessSeeder`.
+ *
+ * Demonstrates the canonical flow: create modules through the
+ * `CreateModule` use-case (so domain events + audit log + Spatie
+ * sync all fire), then create roles, then bind them via
+ * `SyncRoleModules`. Never insert into the package tables directly
+ * from a seeder — the events won't fire and downstream state
+ * (Spatie pivot, audit log, cache) will drift.
+ */
+class AccessSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $createModule = app(CreateModule::class);
+        $createRole = app(CreateRole::class);
+        $syncModules = app(SyncRoleModules::class);
+
+        // 1) Default language (translations land under it by default).
+        if (Language::query()->where('is_default', true)->doesntExist()) {
+            $lang = new Language();
+            $lang->id = (string) \Illuminate\Support\Str::uuid();
+            $lang->code = 'en';
+            $lang->name = 'English';
+            $lang->is_default = true;
+            $lang->is_active = true;
+            $lang->save();
+        }
+
+        // 2) Three sample modules.
+        $events = $createModule->execute(new CreateModuleInput(
+            slug: 'events',
+            name: 'Events',
+            redirect: '/admin/events',
+            icon: 'calendar',
+            rootModuleId: null,
+            sortOrder: 10,
+        ));
+
+        $billing = $createModule->execute(new CreateModuleInput(
+            slug: 'billing',
+            name: 'Billing',
+            redirect: '/admin/billing',
+            icon: 'receipt',
+            rootModuleId: null,
+            sortOrder: 20,
+        ));
+
+        $reports = $createModule->execute(new CreateModuleInput(
+            slug: 'reports',
+            name: 'Reports',
+            redirect: '/admin/reports',
+            icon: 'chart',
+            rootModuleId: null,
+            sortOrder: 30,
+        ));
+
+        // 3) Two roles: admin with full matrix, viewer with view-only.
+        $admin = $createRole->execute(new CreateRoleInput(
+            name: 'admin',
+            displayName: 'Administrator',
+            guard: (string) config('access.guard_name', 'admin'),
+            tenantId: null,
+            level: 100,
+            isSystem: true,
+        ));
+
+        $viewer = $createRole->execute(new CreateRoleInput(
+            name: 'viewer',
+            displayName: 'Viewer',
+            guard: (string) config('access.guard_name', 'admin'),
+            tenantId: null,
+            level: 10,
+            isSystem: false,
+        ));
+
+        // 4) Bind roles → modules.
+        $syncModules->execute(new SyncRoleModulesInput(
+            roleId: $admin->id,
+            modules: [
+                ['module_id' => $events->id, 'is_listing_allowed' => true, 'is_reading_allowed' => true, 'is_writing_allowed' => true, 'is_editing_allowed' => true, 'is_delete_allowed' => true],
+                ['module_id' => $billing->id, 'is_listing_allowed' => true, 'is_reading_allowed' => true, 'is_writing_allowed' => true, 'is_editing_allowed' => true, 'is_delete_allowed' => true],
+                ['module_id' => $reports->id, 'is_listing_allowed' => true, 'is_reading_allowed' => true, 'is_writing_allowed' => true, 'is_editing_allowed' => true, 'is_delete_allowed' => true],
+            ],
+        ));
+
+        $syncModules->execute(new SyncRoleModulesInput(
+            roleId: $viewer->id,
+            modules: [
+                ['module_id' => $events->id, 'is_listing_allowed' => true, 'is_reading_allowed' => true],
+                ['module_id' => $billing->id, 'is_listing_allowed' => true, 'is_reading_allowed' => true],
+                ['module_id' => $reports->id, 'is_listing_allowed' => true, 'is_reading_allowed' => true],
+            ],
+        ));
+    }
+}

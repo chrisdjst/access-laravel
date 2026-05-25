@@ -39,6 +39,7 @@
     "require-dev": {
         "orchestra/testbench": "^9.0|^10.0",
         "pestphp/pest": "^3.8",
+        "phpbench/phpbench": "^1.2",
         "spatie/laravel-permission": "^6.24"
     },
     "suggest": {
@@ -51,7 +52,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "ModularizeRbac\\Laravel\\Tests\\": "tests/"
+            "ModularizeRbac\\Laravel\\Tests\\": "tests/",
+            "ModularizeRbac\\Laravel\\Benchmarks\\": "benchmarks/"
         }
     },
     "extra": {
@@ -60,6 +62,10 @@
                 "ModularizeRbac\\Laravel\\AccessServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "bench": "phpbench run --report=default",
+        "bench:report": "phpbench run --report=default --progress=none"
     },
     "config": {
         "sort-packages": true,

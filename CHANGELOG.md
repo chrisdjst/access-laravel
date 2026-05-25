@@ -16,6 +16,12 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 - `EloquentModuleRepository::searchPaginated()` + `EloquentRoleRepository::searchPaginated()` adapters implementing the new ports.
 - `CachedModuleRepository::searchPaginated()` delegates to the inner repo (paginated/filtered results aren't cached — the combinatorial filter space makes invalidation impractical, but single-row + tree reads still benefit from the cache).
 
+- **OpenAPI 3.1 spec generation**:
+  - New `OpenApiDefinition` class in `src/Http/OpenApi/` holds every endpoint's `#[OA\*]` attributes in a single place — controllers stay clean.
+  - `php artisan access:openapi [--output= | --update | --check]` produces / verifies the spec. `--check` exits 1 when the on-disk spec drifts from the source attributes (CI gate).
+  - `openapi.json` shipped in the repo root. Hosts can copy it into their own API docs site or run their SDK generator against it.
+  - New CI workflow `.github/workflows/openapi-drift.yml` runs on PRs that touch controllers, OpenApi attributes, or the spec itself; fails if `openapi.json` is out of date with the source.
+  - `composer openapi:generate` script alias for one-shot regeneration.
 - **`Access-Api-Version` response header** stamped on every package response by the new `AddApiVersionHeader` middleware. SDK consumers can detect contract drift across host upgrades. Constant lives in `AddApiVersionHeader::API_VERSION` (currently `"1"`); will bump only on breaking response shape changes.
 - **`meta.count` on non-paginated list responses**. `GET /modules` and `GET /roles` without query params now return `{data: [...], meta: {count: N}}` instead of `{data: [...]}`. The paginated path keeps its `meta.{total, limit, offset}` envelope. Additive — clients reading `data` are unaffected.
 - **Rate limiting on bulk endpoints** via a new `access-bulk` named limiter:

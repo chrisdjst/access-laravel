@@ -40,7 +40,8 @@
         "orchestra/testbench": "^9.0|^10.0",
         "pestphp/pest": "^3.8",
         "phpbench/phpbench": "^1.2",
-        "spatie/laravel-permission": "^6.24"
+        "spatie/laravel-permission": "^6.24",
+        "zircote/swagger-php": "^4.10"
     },
     "suggest": {
         "spatie/laravel-permission": "^6.0 — opt-in adapter that mirrors permissions into Spatie's `role_has_permissions` pivot so hosts using the HasRoles trait keep working with `$user->can()`. Enable via `config('access.spatie.enabled')`."

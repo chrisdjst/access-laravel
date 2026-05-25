@@ -1,19 +1,14 @@
 export { VERSION } from './version.js';
 
-// Types
-export type {
-  AdminLanguage,
-  AdminModule,
-  AdminRole,
-  LanguagePayload,
-  RoleModuleEntry,
-  SyncRoleModulesPayload,
-  UpdateModulePayload,
-  UpdateRolePayload,
-} from './types/index.js';
-
-// API factory
-export { createRbacApi, type HttpClient, type RbacApi } from './api/rbac.js';
+// API factory + spec-derived types (re-exported from sdk-ts).
+export {
+  createRbacApi,
+  type RbacApi,
+  type CreateClientOptions,
+  type ModulesIndexResponse,
+  type paths,
+  type components,
+} from './api/rbac.js';
 
 // Provider + hook
 export { RbacProvider, useRbacApi } from './provider.js';
@@ -31,5 +26,8 @@ export {
   useUpdateLanguage,
   useUpdateModule,
   useUpdateRole,
+  type Language,
+  type Module,
   type MutationCallbacks,
+  type Role,
 } from './hooks/useRbac.js';

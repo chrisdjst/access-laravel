@@ -1,57 +1,35 @@
-import type {
-  AdminLanguage,
-  AdminModule,
-  AdminRole,
-  LanguagePayload,
-  SyncRoleModulesPayload,
-  UpdateModulePayload,
-  UpdateRolePayload,
-} from '../types/index.js';
+import { createClient, type CreateClientOptions, type paths } from '@modularize-rbac/sdk-ts';
 
 /**
- * Minimal HTTP client surface the package needs. Compatible with axios,
- * ky-with-adapter, or any wrapper that returns `{ data: T }` responses.
- * Keeping this interface lean means the package has zero axios dependency
- * in its type surface — hosts plug in whichever HTTP lib they already use.
+ * The runtime client used by every hook. Type derived from the sdk-ts
+ * `createClient` return value — that's an openapi-fetch instance typed
+ * against the spec's `paths` object.
  */
-export interface HttpClient {
-  get: <T>(url: string, config?: { params?: Record<string, unknown> }) => Promise<{ data: T }>;
-  post: <T>(url: string, body?: unknown) => Promise<{ data: T }>;
-  put: <T>(url: string, body?: unknown) => Promise<{ data: T }>;
-  delete: (url: string) => Promise<unknown>;
+export type RbacApi = ReturnType<typeof createClient>;
+
+/**
+ * Factory that builds the sdk-ts client. Re-exported under the
+ * @modularize-rbac/admin-react surface so hosts that only want hooks
+ * don't have to take an explicit dep on @modularize-rbac/sdk-ts at
+ * the import level (they still install it as a peer dep, but the
+ * surface is one package import).
+ */
+export function createRbacApi(options: CreateClientOptions): RbacApi {
+  return createClient(options);
 }
 
 /**
- * Build the RBAC HTTP client bound to a host-provided HTTP client. The
- * instance carries the host app's base URL, auth interceptors, and locale
- * headers — the package never sees axios directly so consumers can plug in
- * whatever auth + base URL setup they already have.
+ * Spec-derived response payload types reused across hooks + components.
+ * Hosts can pull anything from `paths` / `components` directly if they
+ * need a less-common shape.
  */
-export function createRbacApi(client: HttpClient) {
-  return {
-    listModules: () => client.get<{ data: AdminModule[] }>('/admin/modules'),
-    updateModule: (id: string, payload: UpdateModulePayload) =>
-      client.put<{ data: AdminModule }>(`/admin/modules/${id}`, payload),
+export type ModulesIndexResponse = paths['/modules']['get']['responses']['200']['content']['application/json'];
+// `GET /roles` and `GET /audit` are typed at the operation level but
+// their 200 response doesn't carry an explicit content schema in the
+// current spec — hosts wanting strong types pull
+// `paths['/roles']['get']['responses']['200']` directly.
 
-    listRoles: (params?: { guard?: string }) =>
-      client.get<{ data: AdminRole[] }>('/admin/roles', { params }),
-    getRole: (id: string) =>
-      client.get<{ data: AdminRole }>(`/admin/roles/${id}`),
-    updateRole: (id: string, payload: UpdateRolePayload) =>
-      client.put<{ data: AdminRole }>(`/admin/roles/${id}`, payload),
-    syncRoleModules: (roleId: string, payload: SyncRoleModulesPayload) =>
-      client.put<{ data: AdminRole }>(`/admin/roles/${roleId}/modules`, payload),
-
-    listLanguages: () => client.get<{ data: AdminLanguage[] }>('/admin/languages'),
-    createLanguage: (payload: LanguagePayload) =>
-      client.post<{ data: AdminLanguage }>('/admin/languages', payload),
-    updateLanguage: (id: string, payload: Partial<LanguagePayload>) =>
-      client.put<{ data: AdminLanguage }>(`/admin/languages/${id}`, payload),
-    deleteLanguage: (id: string) =>
-      client.delete(`/admin/languages/${id}`),
-    setDefaultLanguage: (id: string) =>
-      client.put<{ data: AdminLanguage }>(`/admin/languages/${id}/default`),
-  };
-}
-
-export type RbacApi = ReturnType<typeof createRbacApi>;
+// Re-export the sdk-ts top-level types so hosts importing
+// `@modularize-rbac/admin-react` get access to the spec without
+// taking the sdk-ts package name in their imports.
+export type { paths, components, CreateClientOptions } from '@modularize-rbac/sdk-ts';

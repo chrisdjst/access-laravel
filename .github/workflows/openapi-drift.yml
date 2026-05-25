@@ -1,0 +1,58 @@
+name: OpenAPI drift
+
+on:
+  pull_request:
+    paths:
+      - 'src/Http/Controllers/**'
+      - 'src/Http/OpenApi/**'
+      - 'src/Console/OpenApiCommand.php'
+      - 'openapi.json'
+      - 'composer.json'
+
+jobs:
+  check:
+    name: openapi.json in sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, mbstring, intl
+          coverage: none
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-openapi-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            composer-openapi-
+
+      - name: Install dependencies
+        run: composer update --prefer-stable --prefer-dist --no-interaction
+
+      - name: Regenerate spec into a temp file
+        run: |
+          php -r "
+            require 'vendor/autoload.php';
+            \$g = (new OpenApi\Generator())->generate([__DIR__.'/src/Http/OpenApi']);
+            file_put_contents('openapi.generated.json', \$g->toJson());
+          "
+
+      - name: Compare against committed spec
+        run: |
+          if ! diff -q openapi.json openapi.generated.json > /dev/null; then
+            echo "::error::openapi.json is out of date. Run \`php artisan access:openapi --update\` locally and commit the result."
+            diff openapi.json openapi.generated.json | head -50
+            exit 1
+          fi
+          echo "openapi.json is in sync."

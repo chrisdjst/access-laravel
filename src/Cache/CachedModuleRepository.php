@@ -42,8 +42,11 @@ final class CachedModuleRepository implements ModuleRepository
     {
         $cached = $this->cache->get($this->version->key('tree'));
         if (is_array($cached)) {
+            $this->emitLookup('tree', hit: true);
+
             return $cached;
         }
+        $this->emitLookup('tree', hit: false);
         $fresh = $this->inner->allActiveTree();
         $this->cache->put($this->version->key('tree'), $fresh, $this->ttl);
 
@@ -74,13 +77,29 @@ final class CachedModuleRepository implements ModuleRepository
         // See CachedLanguageRepository::remember() for the wrapper rationale.
         $wrapped = $this->cache->get($key);
         if (is_array($wrapped) && array_key_exists(0, $wrapped)) {
+            $this->emitLookup($suffix, hit: true);
             $value = $wrapped[0];
 
             return $value instanceof Module ? $value : null;
         }
+        $this->emitLookup($suffix, hit: false);
         $fresh = $loader();
         $this->cache->put($key, [$fresh], $this->ttl);
 
         return $fresh;
+    }
+
+    private function emitLookup(string $suffix, bool $hit): void
+    {
+        try {
+            event(new \ModularizeRbac\Laravel\Events\Telemetry\CacheLookup(
+                namespace: 'access:module',
+                key: $suffix,
+                hit: $hit,
+                version: $this->version->current(),
+            ));
+        } catch (\Throwable) {
+            // Telemetry must not break reads.
+        }
     }
 }

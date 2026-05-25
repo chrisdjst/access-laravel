@@ -253,6 +253,94 @@ $module = app(CreateModule::class)->execute(new CreateModuleInput(
 ));
 ```
 
+## Telemetry recipes
+
+The package dispatches two Laravel events for hosts that want
+observability hooks without patching the bridge:
+
+- `ModularizeRbac\Laravel\Events\Telemetry\AbilityResolved` — fires
+  at the end of every `$user->can(...)` call with `ability`,
+  `allowed`, `source` (`direct|ancestor|inheritance|none|malformed`),
+  and `durationMicros`.
+- `ModularizeRbac\Laravel\Events\Telemetry\CacheLookup` — fires on
+  every read through the language + module read-cache decorators
+  with `namespace`, `key`, `hit`, and `version`.
+
+Listener exceptions are caught by the package, so a faulty telemetry
+listener can't break authorization or cache reads.
+
+### Sentry spans
+
+```php
+// app/Providers/EventServiceProvider.php
+use ModularizeRbac\Laravel\Events\Telemetry\AbilityResolved;
+use Sentry\State\Scope;
+
+Event::listen(AbilityResolved::class, function (AbilityResolved $e): void {
+    \Sentry\configureScope(function (Scope $scope) use ($e): void {
+        $scope->setExtra('rbac.ability', $e->ability);
+        $scope->setExtra('rbac.source', $e->source);
+        $scope->setExtra('rbac.duration_us', $e->durationMicros);
+    });
+    if ($e->durationMicros > 10_000) {
+        \Sentry\captureMessage('Slow access check', \Sentry\Severity::warning());
+    }
+});
+```
+
+### Prometheus via `spatie/laravel-prometheus`
+
+```php
+use ModularizeRbac\Laravel\Events\Telemetry\AbilityResolved;
+use ModularizeRbac\Laravel\Events\Telemetry\CacheLookup;
+use Spatie\Prometheus\Facades\Prometheus;
+
+Event::listen(AbilityResolved::class, function (AbilityResolved $e): void {
+    Prometheus::addHistogram('access_check_duration_us')
+        ->labels(['source', 'allowed'])
+        ->observe($e->durationMicros, [$e->source, $e->allowed ? '1' : '0']);
+});
+
+Event::listen(CacheLookup::class, function (CacheLookup $e): void {
+    Prometheus::addCounter('access_cache_lookups_total')
+        ->labels(['namespace', 'hit'])
+        ->incBy(1, [$e->namespace, $e->hit ? '1' : '0']);
+});
+```
+
+### Structured JSON log (Logstash / OpenSearch)
+
+```php
+use Illuminate\Support\Facades\Log;
+use ModularizeRbac\Laravel\Events\Telemetry\AbilityResolved;
+
+Event::listen(AbilityResolved::class, function (AbilityResolved $e): void {
+    Log::channel('telemetry')->info('rbac.ability.resolved', [
+        'ability' => $e->ability,
+        'allowed' => $e->allowed,
+        'source' => $e->source,
+        'duration_us' => $e->durationMicros,
+    ]);
+});
+```
+
+### Audit log failure level
+
+The audit listener catches persistence failures (DB down, encoding
+quirk) so the main domain flow always completes. The level at which
+those failures land in the Laravel log is configurable:
+
+```php
+// config/access.php
+'audit' => [
+    'enabled' => true,
+    'log_failures' => 'error',  // warning (default) | error | critical | false
+],
+```
+
+Set to `false` to swallow the failure silently for hosts that already
+trap audit issues upstream.
+
 ## Upgrading
 
 - [UPGRADING.md](./UPGRADING.md) — consolidated upgrade guide for v2.0 → v2.1, v1.x → v2.0, and `casamento/rbac` → v1.0.

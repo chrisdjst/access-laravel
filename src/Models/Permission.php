@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use ModularizeRbac\Laravel\Database\Factories\PermissionFactory;
 
 /**
  * Persistence-only Eloquent model for permissions.
@@ -21,6 +23,9 @@ use Illuminate\Support\Str;
  */
 class Permission extends Model
 {
+    /** @use HasFactory<PermissionFactory> */
+    use HasFactory;
+
     public $incrementing = false;
 
     protected $keyType = 'string';
@@ -67,5 +72,10 @@ class Permission extends Model
         $model->save();
 
         return $model;
+    }
+
+    protected static function newFactory(): PermissionFactory
+    {
+        return PermissionFactory::new();
     }
 }

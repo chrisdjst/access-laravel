@@ -48,7 +48,8 @@
     },
     "autoload": {
         "psr-4": {
-            "ModularizeRbac\\Laravel\\": "src/"
+            "ModularizeRbac\\Laravel\\": "src/",
+            "ModularizeRbac\\Laravel\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {

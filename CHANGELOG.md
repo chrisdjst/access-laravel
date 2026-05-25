@@ -2,6 +2,19 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.6.0] - Unreleased
+
+### Added
+
+- **Eloquent factories for every package model** under `database/factories/`:
+  - `ModuleFactory` — states: `inactive()`, `withParent($module)`, `trashed()`.
+  - `RoleFactory` — states: `system()`, `withParent($role)`, `forGuard($name)`, `forTenant($uuid)`.
+  - `PermissionFactory` — states: `forModule($slug)`, `action($name)`.
+  - `LanguageFactory` — states: `isDefault()`, `inactive()`.
+  - `ModulePermissionFactory` — states: `allowAll()`, `readOnly()`.
+- All five package models gain `HasFactory` + a `newFactory()` static method that points at the factory class directly. Hosts don't need to register the factory namespace manually.
+- `composer.json` autoload now exposes `ModularizeRbac\Laravel\Database\Factories\` so factories load in both dev and prod (host seeders can call `Module::factory()->create()` outside test contexts).
+
 ## [2.5.0] - 2026-05-25
 
 Minor release: API polish. Pagination + filters on the list endpoints, a per-user throttle on the bulk endpoints, the new `Access-Api-Version` header on every response, and a generated `openapi.json` with a CI drift gate. Fully backwards compatible with v2.4.x — every existing client sees the same payload shape (with new optional fields added). See [UPGRADING.md](./UPGRADING.md#v24--v25) for opt-in details.

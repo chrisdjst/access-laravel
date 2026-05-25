@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use ModularizeRbac\Laravel\Database\Factories\ModuleFactory;
 
 /**
  * Persistence-only Eloquent model. Business invariants and lifecycle
@@ -22,6 +24,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Module extends Model
 {
+    /** @use HasFactory<ModuleFactory> */
+    use HasFactory;
     use SoftDeletes;
 
     public $incrementing = false;
@@ -78,5 +82,10 @@ class Module extends Model
     public function rolePermissions(): HasMany
     {
         return $this->hasMany(RoleModulePermission::class);
+    }
+
+    protected static function newFactory(): ModuleFactory
+    {
+        return ModuleFactory::new();
     }
 }

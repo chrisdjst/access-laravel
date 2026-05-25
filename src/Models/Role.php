@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
+use ModularizeRbac\Laravel\Database\Factories\RoleFactory;
 
 /**
  * Persistence-only Eloquent model for roles.
@@ -25,6 +27,9 @@ use LogicException;
  */
 class Role extends Model
 {
+    /** @use HasFactory<RoleFactory> */
+    use HasFactory;
+
     public $incrementing = false;
 
     protected $keyType = 'string';
@@ -99,5 +104,10 @@ class Role extends Model
         $userModel = (string) config('access.user_model', 'App\\Models\\User');
 
         return $this->belongsToMany($userModel, 'role_user', 'role_id', 'user_id');
+    }
+
+    protected static function newFactory(): RoleFactory
+    {
+        return RoleFactory::new();
     }
 }

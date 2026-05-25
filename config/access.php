@@ -108,6 +108,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Rate limiting
+    |--------------------------------------------------------------------------
+    |
+    | Per-user throttle applied to the package's expensive write
+    | endpoints (POST/DELETE /modules/bulk, POST /roles/{id}/clone,
+    | POST /roles/{id}/users/bulk).
+    |
+    |   bulk — "{max_attempts},{per_minutes}" string. Default 10/min.
+    |          Set to null to disable the throttle entirely (the
+    |          AccessServiceProvider registers a no-op limiter then).
+    */
+    'rate_limit' => [
+        'bulk' => '10,1',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Read cache (CachedLanguageRepository / CachedModuleRepository)
     |--------------------------------------------------------------------------
     |

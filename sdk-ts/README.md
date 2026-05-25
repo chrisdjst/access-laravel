@@ -50,18 +50,24 @@ type Role = components['schemas']['Role'];
 type RolesIndexResponse = paths['/roles']['get']['responses']['200']['content']['application/json'];
 ```
 
+## Postman collection
+
+A ready-to-import Postman collection lives at the repo root: [postman.json](../postman.json). Drag it into Postman or Insomnia to get every endpoint with example bodies. The collection is generated from the same `openapi.json` and refreshed by the same CI gate that protects the SDK types.
+
 ## Regenerating
 
-The types ship pre-generated. To rebuild from a newer spec:
+The types + collection ship pre-generated. To rebuild from a newer spec:
 
 ```bash
 git pull
 cd sdk-ts
 npm install
-npm run build
+npm run generate   # types only
+npm run postman    # postman collection only
+npm run build      # types + tsc → dist
 ```
 
-The CI workflow `.github/workflows/sdk-ts-drift.yml` fails PRs that update `openapi.json` without regenerating `sdk-ts/src/types.d.ts`.
+The CI workflow `.github/workflows/sdk-ts-drift.yml` fails PRs that update `openapi.json`, `sdk-ts/`, or `postman.json` without regenerating both artefacts.
 
 ## Versioning
 

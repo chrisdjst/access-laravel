@@ -22,6 +22,7 @@
   ],
   "scripts": {
     "generate": "node scripts/generate.mjs",
+    "postman": "node scripts/postman.mjs",
     "build": "npm run generate && tsc -p tsconfig.build.json && node scripts/copy-types.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -29,6 +30,7 @@
     "openapi-fetch": "^0.13.0"
   },
   "devDependencies": {
+    "openapi-to-postmanv2": "^6.0.1",
     "openapi-typescript": "^7.4.0",
     "typescript": "^5.7.0"
   },

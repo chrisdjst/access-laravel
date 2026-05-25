@@ -2,6 +2,25 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.4.0] - 2026-05-25
+
+Minor release: PHPBench suite + measurable perf wins on the hot read paths. Fully backwards compatible with v2.3.x — no schema changes that affect existing data, no API changes. The new migration is idempotent and additive. See [UPGRADING.md](./UPGRADING.md#v23--v24) for details.
+
+### Added
+
+- **PHPBench scaffold + `BENCHMARK.md`** baseline document covering six subjects: `CanAccessBench`, `CanAccessWithHierarchyBench`, `CanAccessWithInheritanceBench`, `ModuleTreeBench`, `RoleEnrichBench`, `BulkCreateModulesBench`. Run via `composer bench`.
+- **`ModuleHierarchyIndex`** — new per-request scoped service that memoizes the module slug-by-id + parent-by-slug maps used by inheritance resolution. Bound via `app->scoped()` in the ServiceProvider so a single instance covers every `canAccess()` call within a request.
+
+### Changed
+
+- **`HasAccessPermissions::expandRoleIdsWithAncestors()`** now does a batched `whereIn` per hierarchy level instead of one query per role. Bench: `CanAccessWithHierarchyBench@depth_10` improves -24% (1,405μs → 1,062μs).
+- **`HasAccessPermissions::resolveWithInheritance()`** delegates parent lookup to the scoped `ModuleHierarchyIndex` and pulls module data via `ModuleRepository::allActiveTree()` (cache-fronted by v2.3.0). Bench: `CanAccessWithInheritanceBench@modules_500` improves -88% (5,716μs → 672μs).
+- **`EloquentRoleRepository::resolveAncestors()`** uses the same batched walk pattern. Cycle and orphan-pointer guards preserved.
+
+### Database
+
+- New idempotent migration `2026_06_03_000000_add_role_id_index_to_role_module_permission.php` — adds a standalone index on `role_module_permission.role_id`. Wrapped in `try/catch` so re-running on hosts that already added the index is a no-op. Run `php artisan migrate` to apply.
+
 ## [2.3.0] - 2026-05-25
 
 Minor release: read cache for language + module repositories. Fully backwards compatible with v2.2.x — the layer is opt-in via config but defaults to `enabled = true`. See [UPGRADING.md](./UPGRADING.md#v22--v23) for details.

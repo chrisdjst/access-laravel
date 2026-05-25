@@ -4,6 +4,43 @@ This guide consolidates the upgrade notes for major and minor versions of the br
 
 ---
 
+## v2.3 → v2.4
+
+`v2.4.0` is fully backwards compatible with `v2.3.x`. No API changes. Two minor mechanical steps to apply locally:
+
+### Composer bump
+
+```bash
+composer require modularize-rbac/laravel:^2.4
+```
+
+No `modularize-rbac/core` bump.
+
+### Run the new migration
+
+```bash
+php artisan migrate
+```
+
+Adds a single index on `role_module_permission.role_id`. Idempotent — re-running on hosts that already added it manually is a no-op. Tables already in production stay intact.
+
+### Benchmark suite (opt-in)
+
+The release ships a PHPBench-based benchmark suite under `benchmarks/`:
+
+```bash
+composer bench
+```
+
+Documented in [BENCHMARK.md](./BENCHMARK.md). Run takes 2–3 minutes; reproduces the perf wins described in CHANGELOG. Hosts don't need to run it — it's there for upstream regression tracking.
+
+### What changed under the hood
+
+- `HasAccessPermissions::canAccess()` is faster on hosts using role hierarchies (`parent_role_id`) and on hosts with permission inheritance enabled. Behavior is identical — same answers, fewer queries.
+- A new scoped service `ModuleHierarchyIndex` is bound in the container. Hosts that resolve the bridge's ServiceProvider in custom contexts should make sure their custom bootstrappers don't override `Application::scoped()` in ways that break it.
+
+---
+
 ## v2.2 → v2.3
 
 `v2.3.0` is fully backwards compatible with `v2.2.x`. No schema or API changes — the only addition is a read cache layer that's **on by default**.

@@ -2,6 +2,24 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.5.0] - Unreleased
+
+### Added
+
+- **Pagination + filters on `GET /modules` and `GET /roles`** (opt-in via query params, default behavior preserved):
+  - `GET /api/admin/modules?limit=&offset=&is_active=&root_module_id=&slug_like=` — windowed list with `{data, meta: {total, limit, offset}}` envelope.
+  - `GET /api/admin/roles?limit=&offset=&guard=&organization_id=&is_system=&level_min=&level_max=&has_parent=` — same envelope.
+  - When NO pagination/filter param is present, both endpoints keep the v2.4.x contract (`{data: [...]}` with the full list, no `meta`). Hosts that already paginate client-side see no change.
+  - `limit` defaults to 50, max 1000. Out-of-range values return 422 via the use-case input validation.
+  - `level_min` > `level_max` is rejected with 422 (inverted band).
+- `RoleController::index()` and `ModuleController::index()` constructors widened to inject `ListRolesPaginated` / `ListModulesPaginated` from `modularize-rbac/core` ^1.8.
+- `EloquentModuleRepository::searchPaginated()` + `EloquentRoleRepository::searchPaginated()` adapters implementing the new ports.
+- `CachedModuleRepository::searchPaginated()` delegates to the inner repo (paginated/filtered results aren't cached — the combinatorial filter space makes invalidation impractical, but single-row + tree reads still benefit from the cache).
+
+### Changed
+
+- `composer.json` requires `modularize-rbac/core: ^1.8` (was `^1.7`). Additive bump — picks up the `Pagination` / `PaginatedResult` / `ModuleFilter` / `RoleFilter` value objects + `searchPaginated()` port methods.
+
 ## [2.4.0] - 2026-05-25
 
 Minor release: PHPBench suite + measurable perf wins on the hot read paths. Fully backwards compatible with v2.3.x — no schema changes that affect existing data, no API changes. The new migration is idempotent and additive. See [UPGRADING.md](./UPGRADING.md#v23--v24) for details.

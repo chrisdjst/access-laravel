@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace ModularizeRbac\Laravel\Cache;
 
 use Illuminate\Contracts\Cache\Repository as CacheContract;
+use ModularizeRbac\Core\Application\Module\ModuleFilter;
 use ModularizeRbac\Core\Application\Ports\ModuleRepository;
+use ModularizeRbac\Core\Application\Shared\PaginatedResult;
+use ModularizeRbac\Core\Application\Shared\Pagination;
 use ModularizeRbac\Core\Domain\Module\Module;
 use ModularizeRbac\Core\Domain\Module\ModuleSlug;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
@@ -51,6 +54,15 @@ final class CachedModuleRepository implements ModuleRepository
     {
         $this->inner->save($module);
         $this->version->bump();
+    }
+
+    public function searchPaginated(ModuleFilter $filter, Pagination $pagination): PaginatedResult
+    {
+        // Paginated/filtered search results would be expensive to cache
+        // correctly across the filter combinatorial space — defer to
+        // the inner repository. Reads here go straight to the DB but
+        // single-row + tree reads still benefit from the cache layer.
+        return $this->inner->searchPaginated($filter, $pagination);
     }
 
     /**

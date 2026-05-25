@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ModularizeRbac\Laravel\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
 use ModularizeRbac\Core\Application\Module\BulkCreateModules\BulkCreateModules;
@@ -15,12 +16,15 @@ use ModularizeRbac\Core\Application\Module\CreateModule\CreateModule;
 use ModularizeRbac\Core\Application\Module\CreateModule\CreateModuleInput;
 use ModularizeRbac\Core\Application\Module\DeleteModule\DeleteModule;
 use ModularizeRbac\Core\Application\Module\ListModules\ListModules;
+use ModularizeRbac\Core\Application\Module\ListModules\ListModulesPaginated;
+use ModularizeRbac\Core\Application\Module\ModuleFilter;
 use ModularizeRbac\Core\Application\Module\ModuleOutput;
 use ModularizeRbac\Core\Application\Module\ShowModule\ShowModule;
 use ModularizeRbac\Core\Application\Module\UpdateModule\UpdateModule;
 use ModularizeRbac\Core\Application\Module\UpdateModule\UpdateModuleInput;
 use ModularizeRbac\Core\Application\Ports\LanguageRepository;
 use ModularizeRbac\Core\Application\Ports\TranslationRepository;
+use ModularizeRbac\Core\Application\Shared\Pagination;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
 use ModularizeRbac\Laravel\Http\Requests\BulkCreateModulesRequest;
 use ModularizeRbac\Laravel\Http\Requests\BulkDeleteModulesRequest;
@@ -40,6 +44,7 @@ class ModuleController extends Controller
 {
     public function __construct(
         private readonly ListModules $listModules,
+        private readonly ListModulesPaginated $listModulesPaginated,
         private readonly ShowModule $showModule,
         private readonly CreateModule $createModule,
         private readonly UpdateModule $updateModule,
@@ -52,8 +57,40 @@ class ModuleController extends Controller
     ) {
     }
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
+        // When the caller passes any pagination or filter param, route
+        // through the paginated use-case + attach a `meta` envelope.
+        // Otherwise preserve the v2.4.x contract of returning the full
+        // tree (this is the backwards-compat path).
+        $paginating = $request->hasAny(['limit', 'offset', 'is_active', 'root_module_id', 'slug_like']);
+
+        if ($paginating) {
+            $filter = new ModuleFilter(
+                isActive: $request->has('is_active') ? $request->boolean('is_active') : null,
+                rootModuleId: $request->query('root_module_id'),
+                slugLike: $request->query('slug_like'),
+            );
+            $pagination = new Pagination(
+                limit: $request->has('limit') ? (int) $request->query('limit') : null,
+                offset: $request->has('offset') ? (int) $request->query('offset') : null,
+            );
+
+            $page = $this->listModulesPaginated->execute($filter, $pagination);
+            $resources = [];
+            foreach ($page->items as $out) {
+                $resources[] = $this->enrich($out);
+            }
+
+            return ModuleResource::collection($resources)->additional([
+                'meta' => [
+                    'total' => $page->total,
+                    'limit' => $page->pagination->limit,
+                    'offset' => $page->pagination->offset,
+                ],
+            ]);
+        }
+
         $resources = [];
         foreach ($this->listModules->execute() as $out) {
             $resources[] = $this->enrich($out);

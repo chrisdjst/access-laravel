@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
 use ModularizeRbac\Core\Application\Ports\RoleRepository;
+use ModularizeRbac\Core\Application\Role\RoleFilter;
+use ModularizeRbac\Core\Application\Shared\PaginatedResult;
+use ModularizeRbac\Core\Application\Shared\Pagination;
 use ModularizeRbac\Core\Domain\Role\GuardName;
 use ModularizeRbac\Core\Domain\Role\Role as DomainRole;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
@@ -73,6 +76,54 @@ final class EloquentRoleRepository implements RoleRepository
         $model = $query->first();
 
         return $model !== null ? $this->mapper->toDomain($model) : null;
+    }
+
+    public function searchPaginated(RoleFilter $filter, Pagination $pagination): PaginatedResult
+    {
+        $query = RoleEloquent::query();
+
+        if ($filter->guard !== null) {
+            $query->where('guard_name', $filter->guard->value);
+        }
+        if ($filter->tenantPresent) {
+            if ($filter->tenantId === null) {
+                $query->whereNull('organization_id');
+            } else {
+                $query->where('organization_id', $filter->tenantId->value);
+            }
+        }
+        if ($filter->isSystem !== null) {
+            $query->where('is_system', $filter->isSystem);
+        }
+        if ($filter->levelMin !== null) {
+            $query->where('level', '>=', $filter->levelMin);
+        }
+        if ($filter->levelMax !== null) {
+            $query->where('level', '<=', $filter->levelMax);
+        }
+        if ($filter->hasParent !== null) {
+            if ($filter->hasParent) {
+                $query->whereNotNull('parent_role_id');
+            } else {
+                $query->whereNull('parent_role_id');
+            }
+        }
+
+        $total = (int) (clone $query)->count();
+
+        $models = $query
+            ->orderByDesc('level')
+            ->orderBy('name')
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->get();
+
+        $items = [];
+        foreach ($models as $model) {
+            $items[] = $this->mapper->toDomain($model);
+        }
+
+        return new PaginatedResult($items, $total, $pagination);
     }
 
     public function resolveAncestors(Uuid $roleId): array

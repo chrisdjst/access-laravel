@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace ModularizeRbac\Laravel\Eloquent\Repositories;
 
+use ModularizeRbac\Core\Application\Module\ModuleFilter;
 use ModularizeRbac\Core\Application\Ports\ModuleRepository;
+use ModularizeRbac\Core\Application\Shared\PaginatedResult;
+use ModularizeRbac\Core\Application\Shared\Pagination;
 use ModularizeRbac\Core\Domain\Module\Module as DomainModule;
 use ModularizeRbac\Core\Domain\Module\ModuleSlug;
 use ModularizeRbac\Core\Domain\Shared\Uuid;
@@ -61,5 +64,37 @@ final class EloquentModuleRepository implements ModuleRepository
         $model->timestamps = false;
         $model->saveQuietly();
         $model->timestamps = true;
+    }
+
+    public function searchPaginated(ModuleFilter $filter, Pagination $pagination): PaginatedResult
+    {
+        $query = ModuleEloquent::query(); // SoftDeletes scope excludes trashed by default
+
+        if ($filter->isActive !== null) {
+            $query->where('is_active', $filter->isActive);
+        }
+        if ($filter->rootModuleId !== null) {
+            $query->where('root_module_id', $filter->rootModuleId->value);
+        }
+        if ($filter->slugLike !== null) {
+            $query->where('slug', 'like', '%'.$filter->slugLike.'%');
+        }
+
+        $total = (int) (clone $query)->count();
+
+        $models = $query
+            ->orderByRaw('CASE WHEN root_module_id IS NULL THEN 0 ELSE 1 END')
+            ->orderBy('root_module_id')
+            ->orderBy('sort_order')
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->get();
+
+        $items = [];
+        foreach ($models as $model) {
+            $items[] = $this->mapper->toDomain($model);
+        }
+
+        return new PaginatedResult($items, $total, $pagination);
     }
 }

@@ -20,7 +20,10 @@ use ModularizeRbac\Core\Application\Role\CreateRole\CreateRoleInput;
 use ModularizeRbac\Core\Application\Role\DeleteRole\DeleteRole;
 use ModularizeRbac\Core\Application\Role\GetRolePermissionMatrix\GetRolePermissionMatrix;
 use ModularizeRbac\Core\Application\Role\ListRoles\ListRoles;
+use ModularizeRbac\Core\Application\Role\ListRoles\ListRolesPaginated;
+use ModularizeRbac\Core\Application\Role\RoleFilter;
 use ModularizeRbac\Core\Application\Role\RoleOutput;
+use ModularizeRbac\Core\Application\Shared\Pagination;
 use ModularizeRbac\Core\Application\Role\ShowRole\ShowRole;
 use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModules;
 use ModularizeRbac\Core\Application\Role\SyncRoleModules\SyncRoleModulesInput;
@@ -45,6 +48,7 @@ class RoleController extends Controller
 {
     public function __construct(
         private readonly ListRoles $listRoles,
+        private readonly ListRolesPaginated $listRolesPaginated,
         private readonly ShowRole $showRole,
         private readonly CreateRole $createRoleUseCase,
         private readonly UpdateRole $updateRoleUseCase,
@@ -62,6 +66,40 @@ class RoleController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
+        $paginating = $request->hasAny([
+            'limit', 'offset', 'is_system', 'level_min', 'level_max', 'has_parent',
+        ]);
+
+        if ($paginating) {
+            $filter = new RoleFilter(
+                guard: $request->query('guard'),
+                tenantId: $request->query('organization_id'),
+                tenantPresent: $request->has('organization_id'),
+                isSystem: $request->has('is_system') ? $request->boolean('is_system') : null,
+                levelMin: $request->has('level_min') ? (int) $request->query('level_min') : null,
+                levelMax: $request->has('level_max') ? (int) $request->query('level_max') : null,
+                hasParent: $request->has('has_parent') ? $request->boolean('has_parent') : null,
+            );
+            $pagination = new Pagination(
+                limit: $request->has('limit') ? (int) $request->query('limit') : null,
+                offset: $request->has('offset') ? (int) $request->query('offset') : null,
+            );
+
+            $page = $this->listRolesPaginated->execute($filter, $pagination);
+            $resources = [];
+            foreach ($page->items as $out) {
+                $resources[] = $this->enrich($out);
+            }
+
+            return RoleResource::collection($resources)->additional([
+                'meta' => [
+                    'total' => $page->total,
+                    'limit' => $page->pagination->limit,
+                    'offset' => $page->pagination->offset,
+                ],
+            ]);
+        }
+
         $outputs = $this->listRoles->execute(
             $request->query('guard'),
             $request->query('organization_id'),

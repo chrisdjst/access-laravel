@@ -6,6 +6,13 @@ composer.lock
 /frontend/node_modules/
 /frontend/dist/
 /frontend/*.tsbuildinfo
+/frontend/storybook-static/
+/frontend/coverage/
+
+# SDK
+/sdk-ts/node_modules/
+/sdk-ts/dist/
+/sdk-ts/*.tsbuildinfo
 
 # IDE / OS
 .DS_Store

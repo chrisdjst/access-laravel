@@ -66,10 +66,18 @@ final class AuditingListener
         } catch (Throwable $e) {
             // The audit log is a side observability concern — never
             // let a serialization quirk or transient DB failure crash
-            // the main domain flow. We still log so the issue is
-            // discoverable; hosts wanting hard failure should swap
-            // this listener for their own stricter version.
-            Log::warning('access: failed to record audit entry for domain event', [
+            // the main domain flow. The level is configurable via
+            // `access.audit.log_failures` so compliance-heavy hosts
+            // can route these as `error` or `critical`; setting the
+            // config to `false` silences them entirely.
+            $level = config('access.audit.log_failures', 'warning');
+            if ($level === false || $level === null) {
+                return;
+            }
+            if (! is_string($level) || $level === '') {
+                $level = 'warning';
+            }
+            Log::log($level, 'access: failed to record audit entry for domain event', [
                 'event_class' => $event::class,
                 'exception' => $e->getMessage(),
             ]);

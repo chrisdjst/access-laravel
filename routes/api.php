@@ -39,6 +39,7 @@ Route::delete('roles/{role}', [RoleController::class, 'destroy']);
 Route::post('roles/{role}/restore', [RoleController::class, 'restore']);
 Route::put('roles/{role}/modules', [RoleController::class, 'syncModules']);
 Route::get('roles/{role}/permission-matrix', [RoleController::class, 'permissionMatrix']);
+Route::get('roles/{role}/bindings/history', [\ModularizeRbac\Laravel\Http\Controllers\RoleBindingHistoryController::class, 'index']);
 
 Route::get('users/{user}/accessible-modules', [UserController::class, 'accessibleModules']);
 

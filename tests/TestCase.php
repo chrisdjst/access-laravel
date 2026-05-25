@@ -142,6 +142,23 @@ abstract class TestCase extends Orchestra
             });
         }
 
+        if (! $schema->hasTable('role_module_permission_history')) {
+            $schema->create('role_module_permission_history', function (Blueprint $table): void {
+                $table->uuid('id')->primary();
+                $table->uuid('binding_id');
+                $table->uuid('role_id');
+                $table->uuid('module_id');
+                $table->uuid('module_permission_id_before')->nullable();
+                $table->uuid('module_permission_id_after')->nullable();
+                $table->string('change_type', 32);
+                $table->uuid('actor_id')->nullable();
+                $table->timestamp('changed_at');
+                $table->timestamps();
+                $table->index(['role_id', 'changed_at']);
+                $table->index(['binding_id', 'changed_at']);
+            });
+        }
+
         if (! $schema->hasTable('languages')) {
             $schema->create('languages', function (Blueprint $table): void {
                 $table->uuid('id')->primary();

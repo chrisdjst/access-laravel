@@ -16,6 +16,12 @@ All notable changes to `modularize-rbac/laravel` are documented here. Format fol
 - `EloquentModuleRepository::searchPaginated()` + `EloquentRoleRepository::searchPaginated()` adapters implementing the new ports.
 - `CachedModuleRepository::searchPaginated()` delegates to the inner repo (paginated/filtered results aren't cached — the combinatorial filter space makes invalidation impractical, but single-row + tree reads still benefit from the cache).
 
+- **Rate limiting on bulk endpoints** via a new `access-bulk` named limiter:
+  - Applied to `POST/DELETE /api/admin/modules/bulk`, `POST /api/admin/roles/{role}/clone`, `POST /api/admin/roles/{role}/users/bulk`.
+  - Configurable via `access.rate_limit.bulk` (default `"10,1"` = 10 attempts/minute per user). Setting it to `null` disables the cap entirely.
+  - Keyed per authenticated user (falls back to IP for unauthenticated calls). The 11th request in the window returns 429.
+  - Registered by `AccessServiceProvider::registerBulkLimiter()`. Standard CRUD routes are unaffected.
+
 ### Changed
 
 - `composer.json` requires `modularize-rbac/core: ^1.8` (was `^1.7`). Additive bump — picks up the `Pagination` / `PaginatedResult` / `ModuleFilter` / `RoleFilter` value objects + `searchPaginated()` port methods.

@@ -14,7 +14,10 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Foundation\Exceptions\Handler as FoundationHandler;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate as GateFacade;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use ModularizeRbac\Core\Exceptions\AuthorizationFailed;
@@ -93,11 +96,38 @@ class AccessServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
+        $this->registerBulkLimiter();
         $this->registerRoutes();
         $this->registerExceptionRenderers();
         $this->registerAccessGate();
         $this->registerConsoleCommands();
         $this->registerAdminPolicy();
+    }
+
+    /**
+     * Register the `access-bulk` named limiter consumed by the bulk
+     * write endpoints. Reads `access.rate_limit.bulk` (default "10,1"
+     * = 10 attempts per 1 minute). Setting the config to null
+     * registers a passthrough that never limits, so hosts that
+     * already throttle upstream can disable the package-level cap.
+     */
+    protected function registerBulkLimiter(): void
+    {
+        RateLimiter::for('access-bulk', static function (Request $request): array|Limit {
+            $config = config('access.rate_limit.bulk', '10,1');
+            if ($config === null || $config === '') {
+                return Limit::none();
+            }
+            [$attempts, $minutes] = array_pad(explode(',', (string) $config, 2), 2, '1');
+            $attempts = max(1, (int) $attempts);
+            $minutes = max(1, (int) $minutes);
+
+            // Per-user when authenticated, per-IP otherwise. Matches
+            // Laravel's own `throttle:api` heuristic.
+            $key = $request->user()?->getAuthIdentifier() ?? $request->ip() ?? 'anon';
+
+            return Limit::perMinutes($minutes, $attempts)->by('access-bulk:'.$key);
+        });
     }
 
     protected function registerConsoleCommands(): void

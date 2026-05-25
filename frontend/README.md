@@ -1,18 +1,19 @@
-# @casamento/admin-rbac
+# @modularize-rbac/admin-react
 
-TypeScript types + API client factory + React Query hooks for the `casamento/rbac` Laravel package. No JSX pages — the host owns UI.
+React hooks + admin components for [`modularize-rbac/laravel`](https://github.com/chrisdjst/access-laravel). Pre-built primitives (Roles editor, Modules tree, Audit viewer, Languages admin, AccessGuard) plus the underlying React Query hooks if you want to roll your own UI.
+
+```bash
+npm i @modularize-rbac/admin-react @modularize-rbac/sdk-ts
+```
 
 ## What's inside
 
 ```ts
-// Types
-import type { AdminModule, AdminRole, AdminLanguage, RoleModuleEntry } from '@casamento/admin-rbac';
+// API client + types — re-exported from @modularize-rbac/sdk-ts.
+import type { paths, components } from '@modularize-rbac/admin-react';
 
-// HTTP factory (HttpClient = anything with get/post/put/delete returning { data: T })
-import { createRbacApi, type RbacApi, type HttpClient } from '@casamento/admin-rbac';
-
-// React provider + hook
-import { RbacProvider, useRbacApi } from '@casamento/admin-rbac';
+// React provider + hook (wraps the sdk-ts client + React Query).
+import { RbacProvider, useRbacApi } from '@modularize-rbac/admin-react';
 
 // React Query hooks
 import {
@@ -27,52 +28,30 @@ import {
   useUpdateLanguage,
   useDeleteLanguage,
   useSetDefaultLanguage,
-} from '@casamento/admin-rbac';
-```
+} from '@modularize-rbac/admin-react';
 
-## Install (host app)
-
-```jsonc
-// host app frontend/package.json
-"dependencies": {
-  "@casamento/admin-rbac": "file:../../modularize/frontend"
-}
-```
-
-```bash
-cd C:/workspace/modularize/frontend
-npm install
-npm run build   # generates dist/
-
-cd C:/workspace/casamento/frontend
-npm install --legacy-peer-deps
-```
-
-### Hot-reload during development (recommended)
-
-```bash
-cd C:/workspace/modularize/frontend
-npm link
-cd C:/workspace/casamento/frontend
-npm link @casamento/admin-rbac
-# in modularize/frontend, run `npm run dev` to watch tsc rebuilds
+// (Storybook-driven) reference components — ship in v0.2+.
+// import { RolesPage, ModulesTreeEditor, LanguagesAdmin, AuditViewer, AccessGuard } from '@modularize-rbac/admin-react';
 ```
 
 ## Setup
 
 ```tsx
-// host App.tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RbacProvider } from '@casamento/admin-rbac';
-import apiClient from './lib/api/client'; // your axios instance
+import { RbacProvider } from '@modularize-rbac/admin-react';
+import { createClient } from '@modularize-rbac/sdk-ts';
 
 const queryClient = new QueryClient();
+const apiClient = createClient({
+  baseUrl: 'https://app.test/api/admin',
+  headers: { Authorization: `Bearer ${token}` },
+});
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RbacProvider apiClient={apiClient}>
-        {/* rest of app */}
+        {/* your routes */}
       </RbacProvider>
     </QueryClientProvider>
   );
@@ -82,17 +61,13 @@ export default function App() {
 ## Using hooks
 
 ```tsx
-import { useAdminModules, useUpdateModule } from '@casamento/admin-rbac';
-import { toast } from 'sonner';
+import { useAdminModules } from '@modularize-rbac/admin-react';
 
 export function ModulesPage() {
-  const { data: modules = [], isLoading } = useAdminModules();
-  const update = useUpdateModule({
-    onSuccessMessage: (m) => toast.success(m),
-    onErrorMessage: (m) => toast.error(m),
-  });
+  const { data, isLoading } = useAdminModules();
 
-  return /* your UI */;
+  if (isLoading) return <p>Loading…</p>;
+  return <ul>{data?.map((m) => <li key={m.id}>{m.name}</li>)}</ul>;
 }
 ```
 
@@ -100,8 +75,24 @@ export function ModulesPage() {
 
 - `react ^18 || ^19`
 - `@tanstack/react-query ^5`
+- `@modularize-rbac/sdk-ts ^0.1`
 
-The package does NOT import axios — it accepts any `HttpClient` shape, so use axios, ky, or a fetch wrapper.
+## Migrating from `@casamento/admin-rbac`
+
+This package is the renamed continuation of `@casamento/admin-rbac` v0.1.0. The legacy name is unmaintained.
+
+```diff
+- import { useAdminModules } from '@casamento/admin-rbac';
++ import { useAdminModules } from '@modularize-rbac/admin-react';
+```
+
+Types changed shape too — hand-rolled `AdminModule` / `AdminRole` are gone. Pull the equivalent type out of the spec via `@modularize-rbac/sdk-ts` instead:
+
+```diff
+- import type { AdminModule } from '@casamento/admin-rbac';
++ import type { components } from '@modularize-rbac/admin-react';
++ type AdminModule = components['schemas']['Module'];
+```
 
 ## Build
 

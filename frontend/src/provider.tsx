@@ -1,21 +1,26 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { createRbacApi, type HttpClient, type RbacApi } from './api/rbac.js';
+import { createContext, useContext, type ReactNode } from 'react';
+
+import type { RbacApi } from './api/rbac.js';
 
 const RbacContext = createContext<RbacApi | null>(null);
 
 interface RbacProviderProps {
-  /** Host-app HTTP client (axios instance or anything with the same shape). */
-  apiClient: HttpClient;
+  /**
+   * The sdk-ts client. Build it via `createClient({ baseUrl, headers })`
+   * from `@modularize-rbac/sdk-ts`, or via `createRbacApi(...)` re-exported
+   * by this package — both return the same thing.
+   */
+  apiClient: RbacApi;
   children: ReactNode;
 }
 
 /**
- * Wraps any subtree that uses the @casamento/admin-rbac hooks. Inject the
- * host app's HTTP client so the package never owns base URL or auth headers.
+ * Wraps any subtree that uses the @modularize-rbac/admin-react hooks.
+ * The provider holds a typed sdk-ts client; nothing about base URLs or
+ * auth lives in the package itself.
  */
 export function RbacProvider({ apiClient, children }: RbacProviderProps) {
-  const api = useMemo(() => createRbacApi(apiClient), [apiClient]);
-  return <RbacContext.Provider value={api}>{children}</RbacContext.Provider>;
+  return <RbacContext.Provider value={apiClient}>{children}</RbacContext.Provider>;
 }
 
 /**
@@ -26,7 +31,7 @@ export function useRbacApi(): RbacApi {
   const api = useContext(RbacContext);
   if (!api) {
     throw new Error(
-      '[@casamento/admin-rbac] useRbacApi() must be called inside <RbacProvider>.',
+      '[@modularize-rbac/admin-react] useRbacApi() must be called inside <RbacProvider>.',
     );
   }
   return api;

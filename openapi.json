@@ -512,6 +512,752 @@
                     }
                 }
             }
+        },
+        "/modules/{id}": {
+            "get": {
+                "tags": [
+                    "modules"
+                ],
+                "operationId": "modules.show",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Module"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "modules"
+                ],
+                "operationId": "modules.update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "redirect": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "icon": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "root_module_id": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "uuid"
+                                    },
+                                    "sort_order": {
+                                        "type": "integer"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "translations": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Module"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "modules"
+                ],
+                "operationId": "modules.destroy",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/roles/{role}": {
+            "get": {
+                "tags": [
+                    "roles"
+                ],
+                "operationId": "roles.show",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Role"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "roles"
+                ],
+                "operationId": "roles.update",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "display_name": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "translations": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Role"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "roles"
+                ],
+                "description": "Soft-delete since v2.8. Restore via POST /roles/{role}/restore.",
+                "operationId": "roles.destroy",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Has bindings or is a system role"
+                    }
+                }
+            }
+        },
+        "/roles/{role}/restore": {
+            "post": {
+                "tags": [
+                    "roles"
+                ],
+                "operationId": "roles.restore",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Role"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Role is not soft-deleted"
+                    }
+                }
+            }
+        },
+        "/roles/{role}/modules": {
+            "put": {
+                "tags": [
+                    "roles"
+                ],
+                "operationId": "roles.syncModules",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "modules": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "module_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "is_listing_allowed": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_reading_allowed": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_writing_allowed": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_editing_allowed": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_delete_allowed": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Role"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/roles/{role}/permission-matrix": {
+            "get": {
+                "tags": [
+                    "roles"
+                ],
+                "operationId": "roles.permissionMatrix",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/roles/{role}/bindings/history": {
+            "get": {
+                "tags": [
+                    "roles"
+                ],
+                "operationId": "roles.bindingsHistory",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "since",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "module_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/users/{user}/accessible-modules": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "operationId": "users.accessibleModules",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/languages": {
+            "get": {
+                "tags": [
+                    "languages"
+                ],
+                "operationId": "languages.index",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Language"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "languages"
+                ],
+                "operationId": "languages.store",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "is_default": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Language"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            }
+        },
+        "/languages/{id}": {
+            "get": {
+                "tags": [
+                    "languages"
+                ],
+                "operationId": "languages.show",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Language"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "languages"
+                ],
+                "operationId": "languages.update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "is_default": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Language"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "languages"
+                ],
+                "operationId": "languages.destroy",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Default language cannot be deleted"
+                    }
+                }
+            }
+        },
+        "/languages/{id}/default": {
+            "put": {
+                "tags": [
+                    "languages"
+                ],
+                "operationId": "languages.setDefault",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Language"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -687,8 +1433,16 @@
             "description": "Roles + their permission matrices."
         },
         {
+            "name": "languages",
+            "description": "Languages + the default-language flag."
+        },
+        {
             "name": "audit",
             "description": "Audit log query."
+        },
+        {
+            "name": "users",
+            "description": "User-facing read endpoints."
         }
     ]
 }

@@ -264,4 +264,308 @@ final class OpenApiDefinition
         ],
     )]
     public function listAudit(): void {}
+
+    // Per-module endpoints ------------------------------------------
+
+    #[OA\Get(
+        path: '/modules/{id}',
+        operationId: 'modules.show',
+        tags: ['modules'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Module'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+        ],
+    )]
+    public function showModule(): void {}
+
+    #[OA\Put(
+        path: '/modules/{id}',
+        operationId: 'modules.update',
+        tags: ['modules'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'name', type: 'string'),
+            new OA\Property(property: 'redirect', type: 'string', nullable: true),
+            new OA\Property(property: 'icon', type: 'string', nullable: true),
+            new OA\Property(property: 'root_module_id', type: 'string', format: 'uuid', nullable: true),
+            new OA\Property(property: 'sort_order', type: 'integer'),
+            new OA\Property(property: 'is_active', type: 'boolean'),
+            new OA\Property(property: 'translations', type: 'object'),
+        ])),
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Module'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+            new OA\Response(response: 422, description: 'Validation failed'),
+        ],
+    )]
+    public function updateModule(): void {}
+
+    #[OA\Delete(
+        path: '/modules/{id}',
+        operationId: 'modules.destroy',
+        tags: ['modules'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'No Content'),
+            new OA\Response(response: 404, description: 'Not found'),
+        ],
+    )]
+    public function destroyModule(): void {}
+
+    // Per-role endpoints --------------------------------------------
+
+    #[OA\Get(
+        path: '/roles/{role}',
+        operationId: 'roles.show',
+        tags: ['roles'],
+        parameters: [
+            new OA\Parameter(name: 'role', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Role'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+        ],
+    )]
+    public function showRole(): void {}
+
+    #[OA\Put(
+        path: '/roles/{role}',
+        operationId: 'roles.update',
+        tags: ['roles'],
+        parameters: [
+            new OA\Parameter(name: 'role', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'display_name', type: 'string', nullable: true),
+            new OA\Property(property: 'translations', type: 'object'),
+        ])),
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Role'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+            new OA\Response(response: 422, description: 'Validation failed'),
+        ],
+    )]
+    public function updateRole(): void {}
+
+    #[OA\Delete(
+        path: '/roles/{role}',
+        operationId: 'roles.destroy',
+        tags: ['roles'],
+        description: 'Soft-delete since v2.8. Restore via POST /roles/{role}/restore.',
+        parameters: [
+            new OA\Parameter(name: 'role', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'No Content'),
+            new OA\Response(response: 404, description: 'Not found'),
+            new OA\Response(response: 422, description: 'Has bindings or is a system role'),
+        ],
+    )]
+    public function destroyRole(): void {}
+
+    #[OA\Post(
+        path: '/roles/{role}/restore',
+        operationId: 'roles.restore',
+        tags: ['roles'],
+        parameters: [
+            new OA\Parameter(name: 'role', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Role'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+            new OA\Response(response: 422, description: 'Role is not soft-deleted'),
+        ],
+    )]
+    public function restoreRole(): void {}
+
+    #[OA\Put(
+        path: '/roles/{role}/modules',
+        operationId: 'roles.syncModules',
+        tags: ['roles'],
+        parameters: [
+            new OA\Parameter(name: 'role', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'modules', type: 'array', items: new OA\Items(type: 'object', properties: [
+                new OA\Property(property: 'module_id', type: 'string', format: 'uuid'),
+                new OA\Property(property: 'is_listing_allowed', type: 'boolean'),
+                new OA\Property(property: 'is_reading_allowed', type: 'boolean'),
+                new OA\Property(property: 'is_writing_allowed', type: 'boolean'),
+                new OA\Property(property: 'is_editing_allowed', type: 'boolean'),
+                new OA\Property(property: 'is_delete_allowed', type: 'boolean'),
+            ])),
+        ])),
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Role'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+            new OA\Response(response: 422, description: 'Validation failed'),
+        ],
+    )]
+    public function syncRoleModules(): void {}
+
+    #[OA\Get(
+        path: '/roles/{role}/permission-matrix',
+        operationId: 'roles.permissionMatrix',
+        tags: ['roles'],
+        parameters: [
+            new OA\Parameter(name: 'role', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OK'),
+            new OA\Response(response: 404, description: 'Not found'),
+        ],
+    )]
+    public function rolePermissionMatrix(): void {}
+
+    #[OA\Get(
+        path: '/roles/{role}/bindings/history',
+        operationId: 'roles.bindingsHistory',
+        tags: ['roles'],
+        parameters: [
+            new OA\Parameter(name: 'role', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'offset', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'since', in: 'query', schema: new OA\Schema(type: 'string', format: 'date-time')),
+            new OA\Parameter(name: 'module_id', in: 'query', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OK'),
+        ],
+    )]
+    public function roleBindingsHistory(): void {}
+
+    // User endpoints -------------------------------------------------
+
+    #[OA\Get(
+        path: '/users/{user}/accessible-modules',
+        operationId: 'users.accessibleModules',
+        tags: ['users'],
+        parameters: [
+            new OA\Parameter(name: 'user', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OK'),
+        ],
+    )]
+    public function userAccessibleModules(): void {}
+
+    // Languages endpoints -------------------------------------------
+
+    #[OA\Get(
+        path: '/languages',
+        operationId: 'languages.index',
+        tags: ['languages'],
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Language')),
+            ])),
+        ],
+    )]
+    public function listLanguages(): void {}
+
+    #[OA\Post(
+        path: '/languages',
+        operationId: 'languages.store',
+        tags: ['languages'],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'code', type: 'string'),
+            new OA\Property(property: 'name', type: 'string'),
+            new OA\Property(property: 'is_default', type: 'boolean'),
+        ])),
+        responses: [
+            new OA\Response(response: 201, description: 'Created', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Language'),
+            ])),
+            new OA\Response(response: 422, description: 'Validation failed'),
+        ],
+    )]
+    public function storeLanguage(): void {}
+
+    #[OA\Get(
+        path: '/languages/{id}',
+        operationId: 'languages.show',
+        tags: ['languages'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Language'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+        ],
+    )]
+    public function showLanguage(): void {}
+
+    #[OA\Put(
+        path: '/languages/{id}',
+        operationId: 'languages.update',
+        tags: ['languages'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'code', type: 'string'),
+            new OA\Property(property: 'name', type: 'string'),
+            new OA\Property(property: 'is_default', type: 'boolean'),
+        ])),
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Language'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+            new OA\Response(response: 422, description: 'Validation failed'),
+        ],
+    )]
+    public function updateLanguage(): void {}
+
+    #[OA\Delete(
+        path: '/languages/{id}',
+        operationId: 'languages.destroy',
+        tags: ['languages'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'No Content'),
+            new OA\Response(response: 404, description: 'Not found'),
+            new OA\Response(response: 422, description: 'Default language cannot be deleted'),
+        ],
+    )]
+    public function destroyLanguage(): void {}
+
+    #[OA\Put(
+        path: '/languages/{id}/default',
+        operationId: 'languages.setDefault',
+        tags: ['languages'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Language'),
+            ])),
+            new OA\Response(response: 404, description: 'Not found'),
+        ],
+    )]
+    public function setDefaultLanguage(): void {}
 }

@@ -4,6 +4,87 @@ This guide consolidates the upgrade notes for major and minor versions of the br
 
 ---
 
+## v2.6 → v2.7
+
+`v2.7.0` is fully backwards compatible with `v2.6.x`. The release ships five observability + security features that are either opt-in or preserve the v2.6 default. One new migration to run.
+
+### Composer bump + migrate
+
+```bash
+composer require modularize-rbac/laravel:^2.7
+php artisan migrate
+```
+
+The migration adds nullable `entry_hash` and `previous_hash` columns to `access_audit_log` (used by the optional hash chain — see below). Idempotent; running on a host that already added the columns is a no-op.
+
+No `modularize-rbac/core` bump.
+
+### Telemetry events (drop-in)
+
+```php
+use ModularizeRbac\Laravel\Events\Telemetry\AbilityResolved;
+use ModularizeRbac\Laravel\Events\Telemetry\CacheLookup;
+
+Event::listen(AbilityResolved::class, function ($e) {
+    // $e->ability, $e->allowed, $e->source, $e->durationMicros
+});
+Event::listen(CacheLookup::class, function ($e) {
+    // $e->namespace, $e->key, $e->hit, $e->version
+});
+```
+
+See the README's [Telemetry recipes](./README.md#telemetry-recipes) section for ready-to-paste Sentry, Prometheus, and structured-log integrations.
+
+### Audit log level knob
+
+```php
+// config/access.php
+'audit' => [
+    'enabled' => true,
+    'log_failures' => 'error',   // warning | error | critical | false
+],
+```
+
+Default `'warning'` matches v2.6 behavior. Set to `false` to swallow failures silently.
+
+### PII redaction
+
+```php
+// config/access.php
+'audit' => [
+    // ...
+    'redact_fields' => [
+        'password', 'api_token', 'email', 'cpf', 'cnpj', 'phone',
+    ],
+],
+```
+
+Default list covers common PII + secret field names. Matching is case-insensitive substring — `'email'` covers `email`, `user_email`, `customer_email`, etc. Walks nested arrays. Set to `[]` to disable.
+
+### Tamper-evident hash chain (opt-in)
+
+```php
+// config/access.php
+'audit' => [
+    // ...
+    'hash_chain' => ['enabled' => true],
+],
+```
+
+When enabled, every new audit entry gets a `sha256(previous_hash || canonical(this row))` chained to the prior entry in the same `(tenant_id, event_name)` partition. Existing pre-flip rows keep their NULL hash columns and the verify command skips them.
+
+Verify the chain end-to-end:
+
+```bash
+php artisan access:audit:verify           # all partitions
+php artisan access:audit:verify --since=2026-01-01T00:00:00Z
+php artisan access:audit:verify --event=module.created
+```
+
+Exits 1 if any row's hash doesn't match — wire it into a periodic cron or your CI/CD compliance pipeline.
+
+---
+
 ## v2.5 → v2.6
 
 `v2.6.0` is fully backwards compatible with `v2.5.x`. No schema changes, no API changes. The release ships three DX tools you can opt into when convenient.

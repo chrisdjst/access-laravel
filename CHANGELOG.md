@@ -2,7 +2,9 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.7.0] - Unreleased
+## [2.7.0] - 2026-05-25
+
+Minor release: observability + security. Telemetry events for authz checks and cache lookups, configurable audit log levels, PII redaction in audit payloads, an opt-in tamper-evident hash chain on the audit log, and a `verify` command for integrity audits. Fully backwards compatible with v2.6.x — every new behavior is opt-in or preserves the v2.6 default. See [UPGRADING.md](./UPGRADING.md#v26--v27) for details.
 
 ### Added
 

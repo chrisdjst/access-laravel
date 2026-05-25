@@ -2,7 +2,9 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [2.8.0] - Unreleased
+## [2.8.0] - 2026-05-25
+
+Minor release: schema + extensibility. Soft-delete on roles and languages with a `restore` endpoint, an append-only binding history table with a read endpoint, and (via `modularize-rbac/core` v1.9) an injectable `PermissionActionRegistry` for custom actions beyond the 5 CRUD. Two new migrations to run. See [UPGRADING.md](./UPGRADING.md#v27--v28) for details.
 
 ### Added
 

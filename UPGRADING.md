@@ -4,6 +4,78 @@ This guide consolidates the upgrade notes for major and minor versions of the br
 
 ---
 
+## v2.7 → v2.8
+
+`v2.8.0` is fully backwards compatible with `v2.7.x`. **Two new migrations to run.** The release ships three additive primitives that are either opt-in or preserve the v2.7 default response shape.
+
+### Composer bump + migrate
+
+```bash
+composer require modularize-rbac/laravel:^2.8
+php artisan migrate
+```
+
+The two new migrations are idempotent:
+
+- `2026_06_05_000000_add_soft_deletes_to_roles_and_languages.php` — `deleted_at` column on both tables.
+- `2026_06_06_000000_create_role_module_permission_history.php` — append-only history table.
+
+### Behavior change: `DELETE /api/admin/roles/{id}` now soft-deletes
+
+The row stays with `deleted_at` set. Subsequent `GET /api/admin/roles/{id}` returns 404 (same as v2.7 contract); listings exclude it. The new `POST /api/admin/roles/{id}/restore` reverses it.
+
+Hosts that need true purge keep calling `RoleRepository::delete()` directly from ops scripts — it still hard-deletes via `forceDelete()`.
+
+### Restoring soft-deleted roles
+
+```bash
+curl -X POST https://app.test/api/admin/roles/{id}/restore
+# → 200 with the restored role
+# → 422 when the row is not soft-deleted
+# → 404 when missing entirely
+```
+
+Authorization: `admin.roles.delete` (restore is the inverse of delete).
+
+### Binding history (always on)
+
+Every change to `role_module_permission` is captured in `role_module_permission_history`:
+
+```bash
+curl "https://app.test/api/admin/roles/{id}/bindings/history?limit=50"
+# → {data: [{change_type, module_permission_id_before, ...}], meta: {total, limit, offset}}
+```
+
+Authorization: `admin.roles.view`. Query params: `limit`, `offset`, `since` (ISO-8601), `module_id`. Captures `create`/`update`/`delete` change types with actor + timestamp.
+
+### Custom permission actions (opt-in)
+
+Via `modularize-rbac/core` v1.9's new `PermissionActionRegistry`:
+
+```php
+// app/Providers/AppServiceProvider.php
+use ModularizeRbac\Core\Domain\RoleModulePermission\PermissionActionRegistry;
+
+public function register(): void
+{
+    $this->app->singleton(PermissionActionRegistry::class, function () {
+        $registry = new PermissionActionRegistry();
+        $registry->register('is_export_allowed', 'export');
+        $registry->register('is_sign_allowed', 'sign');
+
+        return $registry;
+    });
+}
+```
+
+The default registry pre-seeds the 5 native actions, so hosts that don't bind a custom instance see no change. Persistence side: `ModulePermission` carries the custom flags in an optional `extraFlags` array. See the [core v1.9 CHANGELOG](https://github.com/chrisdjst/access-core/blob/main/CHANGELOG.md#190---2026-05-25) for details.
+
+### Deprecation watch
+
+- `ModulePermission::FLAG_TO_ACTION` const stays in v2.8 but will be removed in v3.0. Hosts reading it directly should migrate to `PermissionActionRegistry::all()` instead.
+
+---
+
 ## v2.6 → v2.7
 
 `v2.7.0` is fully backwards compatible with `v2.6.x`. The release ships five observability + security features that are either opt-in or preserve the v2.6 default. One new migration to run.

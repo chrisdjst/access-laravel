@@ -73,6 +73,7 @@ abstract class TestCase extends Orchestra
                 $table->boolean('is_system')->default(false);
                 $table->uuid('parent_role_id')->nullable();
                 $table->timestamps();
+                $table->softDeletes();
                 $table->unique(['name', 'guard_name', 'organization_id']);
             });
         }
@@ -149,6 +150,7 @@ abstract class TestCase extends Orchestra
                 $table->boolean('is_default')->default(false);
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
+                $table->softDeletes();
             });
         }
 

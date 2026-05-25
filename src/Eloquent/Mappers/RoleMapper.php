@@ -25,6 +25,7 @@ final class RoleMapper
             createdAt: $model->created_at?->toDateTimeImmutable() ?? new \DateTimeImmutable(),
             updatedAt: $model->updated_at?->toDateTimeImmutable() ?? new \DateTimeImmutable(),
             parentRoleId: $model->parent_role_id !== null ? new Uuid((string) $model->parent_role_id) : null,
+            deletedAt: $model->deleted_at?->toDateTimeImmutable(),
         );
     }
 
@@ -41,6 +42,7 @@ final class RoleMapper
         $model->parent_role_id = $entity->parentRoleId()?->value;
         $model->created_at = $entity->createdAt();
         $model->updated_at = $entity->updatedAt();
+        $model->deleted_at = $entity->deletedAt();
 
         return $model;
     }

@@ -22,7 +22,15 @@ final class EloquentRoleRepository implements RoleRepository
 
     public function find(Uuid $id): ?DomainRole
     {
+        // SoftDeletes trait already filters trashed from the default query.
         $model = RoleEloquent::query()->find($id->value);
+
+        return $model !== null ? $this->mapper->toDomain($model) : null;
+    }
+
+    public function findIncludingTrashed(Uuid $id): ?DomainRole
+    {
+        $model = RoleEloquent::withTrashed()->find($id->value);
 
         return $model !== null ? $this->mapper->toDomain($model) : null;
     }
@@ -48,7 +56,9 @@ final class EloquentRoleRepository implements RoleRepository
 
     public function save(DomainRole $role): void
     {
-        $existing = RoleEloquent::query()->find($role->id->value);
+        // Use withTrashed() so saves on soft-deleted roles (e.g. mid-
+        // restore) reach the persisted row.
+        $existing = RoleEloquent::withTrashed()->find($role->id->value);
         $model = $this->mapper->toModel($role, $existing);
 
         $model->timestamps = false;
@@ -58,7 +68,23 @@ final class EloquentRoleRepository implements RoleRepository
 
     public function delete(DomainRole $role): void
     {
-        RoleEloquent::query()->whereKey($role->id->value)->delete();
+        // The port contract preserves the legacy HARD delete here.
+        // SoftDeletes::delete() would only set deleted_at — we want a
+        // true row removal, so forceDelete() explicitly.
+        RoleEloquent::withTrashed()->whereKey($role->id->value)->forceDelete();
+    }
+
+    public function softDelete(DomainRole $role): void
+    {
+        // The aggregate has already set deletedAt; persist it via save.
+        $this->save($role);
+    }
+
+    public function restore(DomainRole $role): void
+    {
+        // The aggregate cleared deletedAt; persist via save (deleted_at
+        // becomes NULL on the row).
+        $this->save($role);
     }
 
     public function findByName(string $name, GuardName $guard, ?Uuid $tenantId): ?DomainRole

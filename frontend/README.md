@@ -173,6 +173,15 @@ export function ModulesPage() {
 - `react ^18 || ^19`
 - `@tanstack/react-query ^5`
 - `@modularize-rbac/sdk-ts ^0.1`
+- `@radix-ui/themes ^3` (UI primitives — the reference components render Radix elements)
+
+Don't forget to import the Radix stylesheet once at app entry:
+
+```ts
+import '@radix-ui/themes/styles.css';
+```
+
+`@dnd-kit/core`, `@dnd-kit/sortable`, and `@dnd-kit/utilities` ship as direct dependencies (`ModulesTreeEditor` needs them).
 
 ## Migrating from `@casamento/admin-rbac`
 

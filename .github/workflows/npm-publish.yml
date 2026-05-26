@@ -1,0 +1,91 @@
+name: npm publish
+
+# Publish either @modularize-rbac/sdk-ts or @modularize-rbac/admin-react
+# when a release tag is pushed. Tag conventions:
+#
+#   sdk-ts-v0.1.0        → publishes sdk-ts/
+#   admin-react-v0.1.0   → publishes frontend/
+#
+# Both packages are public scoped (npm `--access public`). The job uses
+# the NPM_TOKEN secret (granular automation token scoped to the
+# @modularize-rbac org).
+
+on:
+  push:
+    tags:
+      - 'sdk-ts-v*'
+      - 'admin-react-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Resolve package from tag
+        id: pkg
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ "$tag" == sdk-ts-v* ]]; then
+            echo "dir=sdk-ts" >> "$GITHUB_OUTPUT"
+            echo "name=@modularize-rbac/sdk-ts" >> "$GITHUB_OUTPUT"
+            echo "version=${tag#sdk-ts-v}" >> "$GITHUB_OUTPUT"
+          elif [[ "$tag" == admin-react-v* ]]; then
+            echo "dir=frontend" >> "$GITHUB_OUTPUT"
+            echo "name=@modularize-rbac/admin-react" >> "$GITHUB_OUTPUT"
+            echo "version=${tag#admin-react-v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unrecognized tag prefix: $tag" >&2
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+          scope: '@modularize-rbac'
+
+      - name: Verify tag matches package.json version
+        working-directory: ${{ steps.pkg.outputs.dir }}
+        run: |
+          pkg_version=$(node -p "require('./package.json').version")
+          tag_version="${{ steps.pkg.outputs.version }}"
+          if [[ "$pkg_version" != "$tag_version" ]]; then
+            echo "Tag version ($tag_version) does not match package.json ($pkg_version)" >&2
+            exit 1
+          fi
+          echo "OK: publishing $tag_version of ${{ steps.pkg.outputs.name }}"
+
+      - name: Install + build sdk-ts (always — admin-react peer-depends on it)
+        working-directory: sdk-ts
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install + build admin-react
+        if: steps.pkg.outputs.dir == 'frontend'
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run tests
+        working-directory: ${{ steps.pkg.outputs.dir }}
+        run: |
+          if [[ "${{ steps.pkg.outputs.dir }}" == "frontend" ]]; then
+            npm test
+          else
+            # sdk-ts is type-only; the build itself is the validation.
+            echo "sdk-ts has no test suite — relying on the build step."
+          fi
+
+      - name: Publish to npm
+        working-directory: ${{ steps.pkg.outputs.dir }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public

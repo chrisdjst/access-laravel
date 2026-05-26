@@ -31,8 +31,8 @@ import {
 } from '@modularize-rbac/admin-react';
 
 // Reference components (ship pre-built):
-import { RolesPage } from '@modularize-rbac/admin-react';
-// ModulesTreeEditor, LanguagesAdmin, AuditViewer, AccessGuard ship in subsequent 0.x releases.
+import { RolesPage, ModulesTreeEditor } from '@modularize-rbac/admin-react';
+// LanguagesAdmin, AuditViewer, AccessGuard ship in subsequent 0.x releases.
 ```
 
 ## Setup
@@ -74,6 +74,20 @@ export function AdminRolesRoute() {
 ```
 
 All visible strings can be overridden for i18n via the `labels` prop (see `RolesPageLabels`). Pass `onRoleSelect` to receive the role id when a row is clicked — wire it up to your own route for the role editor.
+
+### `<ModulesTreeEditor />`
+
+Drag-and-drop tree editor for the module catalog. Built on `@dnd-kit/sortable`: drag a row to reorder siblings (persists `sort_order` via `PUT /modules/{id}`). Per-row Add Child / Edit / Delete + multi-select with bulk-delete bar at the top.
+
+```tsx
+import { ModulesTreeEditor } from '@modularize-rbac/admin-react';
+
+export function AdminModulesRoute() {
+  return <ModulesTreeEditor onModuleSelect={(id) => navigate(`/admin/modules/${id}`)} />;
+}
+```
+
+Every label is overridable via the `labels` prop (`ModulesTreeEditorLabels`). The component issues one `PUT /modules/{id}` per row when a drag completes (one per affected sort_order), batched by React Query.
 
 ## Using hooks
 

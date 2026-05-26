@@ -24,6 +24,20 @@ type UpdateModulePayload = NonNullable<paths['/modules/{id}']['put']['requestBod
   ? T
   : never;
 
+type CreateModulePayload = NonNullable<paths['/modules']['post']['requestBody']> extends {
+  content: { 'application/json': infer T };
+}
+  ? T
+  : never;
+
+type BulkDeleteModulesPayload = NonNullable<
+  paths['/modules/bulk']['delete']['requestBody']
+> extends {
+  content: { 'application/json': infer T };
+}
+  ? T
+  : never;
+
 type UpdateRolePayload = NonNullable<paths['/roles/{role}']['put']['requestBody']> extends {
   content: { 'application/json': infer T };
 }
@@ -108,6 +122,56 @@ export function useUpdateModule(cb?: MutationCallbacks) {
     onError: () => cb?.onErrorMessage?.('Erro ao atualizar módulo.'),
   });
 }
+
+export function useCreateModule(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateModulePayload) =>
+      unwrap(api.POST('/modules', { body: payload })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'modules'] });
+      qc.invalidateQueries({ queryKey: ['me', 'modules'] });
+      cb?.onSuccessMessage?.('Módulo criado!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao criar módulo.'),
+  });
+}
+
+export function useDeleteModule(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.DELETE('/modules/{id}', { params: { path: { id } } })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'modules'] });
+      qc.invalidateQueries({ queryKey: ['me', 'modules'] });
+      cb?.onSuccessMessage?.('Módulo removido!');
+    },
+    onError: () => cb?.onErrorMessage?.('Não foi possível remover o módulo.'),
+  });
+}
+
+export function useBulkDeleteModules(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: BulkDeleteModulesPayload) =>
+      unwrap(api.DELETE('/modules/bulk', { body: payload })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'modules'] });
+      qc.invalidateQueries({ queryKey: ['me', 'modules'] });
+      cb?.onSuccessMessage?.('Módulos removidos!');
+    },
+    onError: () => cb?.onErrorMessage?.('Falha ao remover módulos em lote.'),
+  });
+}
+
+export type { CreateModulePayload, BulkDeleteModulesPayload };
 
 // ============================================================================
 // Roles

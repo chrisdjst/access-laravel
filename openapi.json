@@ -331,6 +331,79 @@
                         "description": "Invalid query parameter"
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "roles"
+                ],
+                "operationId": "roles.store",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "display_name": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "guard_name": {
+                                        "type": "string"
+                                    },
+                                    "organization_id": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "uuid"
+                                    },
+                                    "level": {
+                                        "type": "integer"
+                                    },
+                                    "is_system": {
+                                        "type": "boolean"
+                                    },
+                                    "parent_role_id": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "uuid"
+                                    },
+                                    "translations": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Role"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                }
             }
         },
         "/roles/{role}/clone": {
@@ -1081,6 +1154,9 @@
                                     },
                                     "is_default": {
                                         "type": "boolean"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -1177,6 +1253,9 @@
                                         "type": "string"
                                     },
                                     "is_default": {
+                                        "type": "boolean"
+                                    },
+                                    "is_active": {
                                         "type": "boolean"
                                     }
                                 },
@@ -1403,6 +1482,9 @@
                         "type": "string"
                     },
                     "is_default": {
+                        "type": "boolean"
+                    },
+                    "is_active": {
                         "type": "boolean"
                     }
                 },

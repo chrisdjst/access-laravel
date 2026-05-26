@@ -14,6 +14,12 @@ export {
 export { RbacProvider, useRbacApi } from './provider.js';
 
 // Components
+export { RolesPage, type RolesPageProps, type RolesPageLabels } from './components/RolesPage.js';
+export {
+  LanguagesAdmin,
+  type LanguagesAdminProps,
+  type LanguagesAdminLabels,
+} from './components/LanguagesAdmin.js';
 export {
   AuditViewer,
   type AuditViewerProps,
@@ -27,8 +33,15 @@ export {
   useAdminModules,
   useAdminRole,
   useAdminRoles,
+  useBulkDeleteModules,
+  useCloneRole,
   useCreateLanguage,
+  useCreateModule,
+  useCreateRole,
   useDeleteLanguage,
+  useDeleteModule,
+  useDeleteRole,
+  useRestoreRole,
   useSetDefaultLanguage,
   useSyncRoleModules,
   useUpdateLanguage,
@@ -36,8 +49,17 @@ export {
   useUpdateRole,
   type AuditEntry,
   type AuditIndexQuery,
+  type BulkDeleteModulesPayload,
+  type CreateModulePayload,
   type Language,
   type Module,
   type MutationCallbacks,
   type Role,
 } from './hooks/useRbac.js';
+
+// Components
+export {
+  ModulesTreeEditor,
+  type ModulesTreeEditorProps,
+  type ModulesTreeEditorLabels,
+} from './components/ModulesTreeEditor.js';

@@ -15,6 +15,15 @@ export const handlers = [
   http.get(`${API}/modules`, () =>
     HttpResponse.json({ data: fixtures.modules, meta: { count: fixtures.modules.length } }),
   ),
+  http.post(`${API}/modules`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+
+    return HttpResponse.json(
+      { data: { ...fixtures.modules[0], ...body, id: 'new-module-uuid' } },
+      { status: 201 },
+    );
+  }),
+  http.delete(`${API}/modules/bulk`, () => new HttpResponse(null, { status: 204 })),
   http.put(`${API}/modules/:id`, async ({ params, request }) => {
     const body = (await request.json()) as Record<string, unknown>;
 
@@ -22,6 +31,7 @@ export const handlers = [
       data: { ...fixtures.modules[0], id: params.id as string, ...body },
     });
   }),
+  http.delete(`${API}/modules/:id`, () => new HttpResponse(null, { status: 204 })),
 
   // Roles
   http.get(`${API}/roles`, () =>

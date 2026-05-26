@@ -19,15 +19,27 @@ export {
   useAdminModules,
   useAdminRole,
   useAdminRoles,
+  useBulkDeleteModules,
   useCreateLanguage,
+  useCreateModule,
   useDeleteLanguage,
+  useDeleteModule,
   useSetDefaultLanguage,
   useSyncRoleModules,
   useUpdateLanguage,
   useUpdateModule,
   useUpdateRole,
+  type BulkDeleteModulesPayload,
+  type CreateModulePayload,
   type Language,
   type Module,
   type MutationCallbacks,
   type Role,
 } from './hooks/useRbac.js';
+
+// Components
+export {
+  ModulesTreeEditor,
+  type ModulesTreeEditorProps,
+  type ModulesTreeEditorLabels,
+} from './components/ModulesTreeEditor.js';

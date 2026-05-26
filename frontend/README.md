@@ -30,8 +30,9 @@ import {
   useSetDefaultLanguage,
 } from '@modularize-rbac/admin-react';
 
-// (Storybook-driven) reference components — ship in v0.2+.
-// import { RolesPage, ModulesTreeEditor, LanguagesAdmin, AuditViewer, AccessGuard } from '@modularize-rbac/admin-react';
+// Reference components (ship pre-built):
+import { ModulesTreeEditor } from '@modularize-rbac/admin-react';
+// RolesPage, LanguagesAdmin, AuditViewer, AccessGuard ship in subsequent 0.x releases.
 ```
 
 ## Setup
@@ -57,6 +58,22 @@ export default function App() {
   );
 }
 ```
+
+## Reference components
+
+### `<ModulesTreeEditor />`
+
+Drag-and-drop tree editor for the module catalog. Built on `@dnd-kit/sortable`: drag a row to reorder siblings (persists `sort_order` via `PUT /modules/{id}`). Per-row Add Child / Edit / Delete + multi-select with bulk-delete bar at the top.
+
+```tsx
+import { ModulesTreeEditor } from '@modularize-rbac/admin-react';
+
+export function AdminModulesRoute() {
+  return <ModulesTreeEditor onModuleSelect={(id) => navigate(`/admin/modules/${id}`)} />;
+}
+```
+
+Every label is overridable via the `labels` prop (`ModulesTreeEditorLabels`). The component issues one `PUT /modules/{id}` per row when a drag completes (one per affected sort_order), batched by React Query.
 
 ## Using hooks
 

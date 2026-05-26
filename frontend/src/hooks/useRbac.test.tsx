@@ -10,8 +10,11 @@ import {
   useAdminModules,
   useAdminRole,
   useAdminRoles,
+  useBulkDeleteModules,
   useCreateLanguage,
+  useCreateModule,
   useDeleteLanguage,
+  useDeleteModule,
   useSetDefaultLanguage,
   useSyncRoleModules,
   useUpdateLanguage,
@@ -64,6 +67,57 @@ describe('useUpdateModule', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(errorMessage).toBe('Erro ao atualizar módulo.');
+  });
+});
+
+describe('useCreateModule', () => {
+  it('POSTs and resolves with the new module', async () => {
+    const { result } = renderHookWithProviders(() => useCreateModule());
+
+    result.current.mutate({
+      slug: 'reports',
+      name: 'Reports',
+      icon: null,
+      root_module_id: null,
+      sort_order: 0,
+      is_active: true,
+      translations: {},
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.slug).toBe('reports');
+    expect(result.current.data?.data?.id).toBe('new-module-uuid');
+  });
+});
+
+describe('useDeleteModule', () => {
+  it('DELETEs and resolves on 204', async () => {
+    const { result } = renderHookWithProviders(() => useDeleteModule());
+
+    result.current.mutate(fixtures.modules[0]!.id);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+});
+
+describe('useBulkDeleteModules', () => {
+  it('DELETEs /modules/bulk with an ids array and resolves on 204', async () => {
+    let capturedBody: { ids?: string[] } | null = null;
+    server.use(
+      http.delete(`${API}/modules/bulk`, async ({ request }) => {
+        capturedBody = (await request.json()) as { ids?: string[] };
+
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    const ids = [fixtures.modules[0]!.id, fixtures.modules[1]?.id ?? 'second-id'];
+    const { result } = renderHookWithProviders(() => useBulkDeleteModules());
+
+    result.current.mutate({ ids });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(capturedBody?.ids).toEqual(ids);
   });
 });
 

@@ -132,7 +132,7 @@ export type paths = {
         };
         readonly get: operations["roles.index"];
         readonly put?: never;
-        readonly post?: never;
+        readonly post: operations["roles.store"];
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
@@ -875,6 +875,50 @@ export interface operations {
                 content?: never;
             };
             /** @description Invalid query parameter */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    readonly "roles.store": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly display_name?: string | null;
+                    readonly guard_name?: string;
+                    readonly is_system?: boolean;
+                    readonly level?: number;
+                    readonly name?: string;
+                    /** Format: uuid */
+                    readonly organization_id?: string | null;
+                    /** Format: uuid */
+                    readonly parent_role_id?: string | null;
+                    readonly translations?: Record<string, unknown>;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Created */
+            readonly 201: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        readonly data?: components["schemas"]["Role"];
+                    };
+                };
+            };
+            /** @description Validation failed */
             readonly 422: {
                 headers: {
                     readonly [name: string]: unknown;

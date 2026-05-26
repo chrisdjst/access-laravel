@@ -63,6 +63,23 @@ if (Array.isArray(collection.item)) {
 // — keeping it would also flap the drift gate.
 delete collection.info?._postman_id;
 
+// openapi-to-postmanv2 stamps a fresh random `id` (uuid v4) into every
+// folder / request / response on every run. Postman doesn't need them —
+// it regenerates ids on import — so strip them everywhere to keep the
+// committed postman.json byte-stable for the drift gate.
+function stripIds(node) {
+  if (Array.isArray(node)) {
+    node.forEach(stripIds);
+
+    return;
+  }
+  if (node && typeof node === 'object') {
+    delete node.id;
+    for (const value of Object.values(node)) stripIds(value);
+  }
+}
+stripIds(collection);
+
 await writeFile(outPath, JSON.stringify(collection, null, 2) + '\n', 'utf8');
 
 console.log(`✓ Wrote ${outPath}`);

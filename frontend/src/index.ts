@@ -13,14 +13,21 @@ export {
 // Provider + hook
 export { RbacProvider, useRbacApi } from './provider.js';
 
+// Components
+export { RolesPage, type RolesPageProps, type RolesPageLabels } from './components/RolesPage.js';
+
 // React Query hooks
 export {
   useAdminLanguages,
   useAdminModules,
   useAdminRole,
   useAdminRoles,
+  useCloneRole,
   useCreateLanguage,
+  useCreateRole,
   useDeleteLanguage,
+  useDeleteRole,
+  useRestoreRole,
   useSetDefaultLanguage,
   useSyncRoleModules,
   useUpdateLanguage,

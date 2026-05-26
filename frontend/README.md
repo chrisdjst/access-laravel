@@ -30,8 +30,9 @@ import {
   useSetDefaultLanguage,
 } from '@modularize-rbac/admin-react';
 
-// (Storybook-driven) reference components — ship in v0.2+.
-// import { RolesPage, ModulesTreeEditor, LanguagesAdmin, AuditViewer, AccessGuard } from '@modularize-rbac/admin-react';
+// Reference components (ship pre-built):
+import { RolesPage } from '@modularize-rbac/admin-react';
+// ModulesTreeEditor, LanguagesAdmin, AuditViewer, AccessGuard ship in subsequent 0.x releases.
 ```
 
 ## Setup
@@ -57,6 +58,22 @@ export default function App() {
   );
 }
 ```
+
+## Reference components
+
+### `<RolesPage />`
+
+Drop-in admin page for managing roles. Lists roles paginated, with create / clone / soft-delete / restore actions wired to the matching hooks.
+
+```tsx
+import { RolesPage } from '@modularize-rbac/admin-react';
+
+export function AdminRolesRoute() {
+  return <RolesPage limit={25} />;
+}
+```
+
+All visible strings can be overridden for i18n via the `labels` prop (see `RolesPageLabels`). Pass `onRoleSelect` to receive the role id when a row is clicked — wire it up to your own route for the role editor.
 
 ## Using hooks
 

@@ -204,6 +204,29 @@ final class OpenApiDefinition
     public function listRoles(): void {}
 
     #[OA\Post(
+        path: '/roles',
+        operationId: 'roles.store',
+        tags: ['roles'],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'name', type: 'string'),
+            new OA\Property(property: 'display_name', type: 'string', nullable: true),
+            new OA\Property(property: 'guard_name', type: 'string'),
+            new OA\Property(property: 'organization_id', type: 'string', format: 'uuid', nullable: true),
+            new OA\Property(property: 'level', type: 'integer'),
+            new OA\Property(property: 'is_system', type: 'boolean'),
+            new OA\Property(property: 'parent_role_id', type: 'string', format: 'uuid', nullable: true),
+            new OA\Property(property: 'translations', type: 'object'),
+        ])),
+        responses: [
+            new OA\Response(response: 201, description: 'Created', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Role'),
+            ])),
+            new OA\Response(response: 422, description: 'Validation failed'),
+        ],
+    )]
+    public function storeRole(): void {}
+
+    #[OA\Post(
         path: '/roles/{role}/clone',
         operationId: 'roles.clone',
         tags: ['roles'],

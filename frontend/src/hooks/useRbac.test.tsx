@@ -11,10 +11,14 @@ import {
   useAdminRole,
   useAdminRoles,
   useBulkDeleteModules,
+  useCloneRole,
   useCreateLanguage,
   useCreateModule,
+  useCreateRole,
   useDeleteLanguage,
   useDeleteModule,
+  useDeleteRole,
+  useRestoreRole,
   useSetDefaultLanguage,
   useSyncRoleModules,
   useUpdateLanguage,
@@ -193,6 +197,59 @@ describe('useSyncRoleModules', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.data?.id).toBe(fixtures.roles[0]!.id);
+  });
+});
+
+describe('useCreateRole', () => {
+  it('POSTs and resolves with the new role', async () => {
+    const { result } = renderHookWithProviders(() => useCreateRole());
+
+    result.current.mutate({
+      name: 'reviewer',
+      display_name: 'Reviewer',
+      guard_name: 'admin',
+      level: 40,
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.name).toBe('reviewer');
+    expect(result.current.data?.data?.id).toBe('new-role-uuid');
+  });
+});
+
+describe('useCloneRole', () => {
+  it('POSTs to /roles/:id/clone and resolves with the cloned role', async () => {
+    const { result } = renderHookWithProviders(() => useCloneRole());
+
+    result.current.mutate({
+      sourceRoleId: fixtures.roles[0]!.id,
+      payload: { name: 'admin_copy', display_name: 'Admin Copy' },
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.id).toBe('cloned-role-uuid');
+    expect(result.current.data?.data?.name).toBe('admin_copy');
+  });
+});
+
+describe('useDeleteRole', () => {
+  it('DELETEs and resolves on 204', async () => {
+    const { result } = renderHookWithProviders(() => useDeleteRole());
+
+    result.current.mutate(fixtures.roles[0]!.id);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+});
+
+describe('useRestoreRole', () => {
+  it('POSTs to /roles/:id/restore and resolves with the restored role', async () => {
+    const { result } = renderHookWithProviders(() => useRestoreRole());
+
+    result.current.mutate(fixtures.roles[0]!.id);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.deleted_at).toBeNull();
   });
 });
 

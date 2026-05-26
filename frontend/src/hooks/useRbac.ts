@@ -44,6 +44,18 @@ type UpdateRolePayload = NonNullable<paths['/roles/{role}']['put']['requestBody'
   ? T
   : never;
 
+type CreateRolePayload = NonNullable<paths['/roles']['post']['requestBody']> extends {
+  content: { 'application/json': infer T };
+}
+  ? T
+  : never;
+
+type CloneRolePayload = NonNullable<paths['/roles/{role}/clone']['post']['requestBody']> extends {
+  content: { 'application/json': infer T };
+}
+  ? T
+  : never;
+
 type SyncRoleModulesPayload = NonNullable<
   paths['/roles/{role}/modules']['put']['requestBody']
 > extends {
@@ -199,6 +211,75 @@ export function useUpdateRole(cb?: MutationCallbacks) {
       cb?.onSuccessMessage?.('Perfil atualizado!');
     },
     onError: () => cb?.onErrorMessage?.('Erro ao atualizar perfil.'),
+  });
+}
+
+export function useCreateRole(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateRolePayload) => unwrap(api.POST('/roles', { body: payload })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'roles'] });
+      cb?.onSuccessMessage?.('Perfil criado!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao criar perfil.'),
+  });
+}
+
+export function useCloneRole(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ sourceId, payload }: { sourceId: string; payload: CloneRolePayload }) =>
+      unwrap(
+        api.POST('/roles/{role}/clone', {
+          params: { path: { role: sourceId } },
+          body: payload,
+        }),
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'roles'] });
+      cb?.onSuccessMessage?.('Perfil clonado!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao clonar perfil.'),
+  });
+}
+
+export function useDeleteRole(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.DELETE('/roles/{role}', { params: { path: { role: id } } })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'roles'] });
+      cb?.onSuccessMessage?.('Perfil removido!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao remover perfil.'),
+  });
+}
+
+export function useRestoreRole(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(
+        api.POST('/roles/{role}/restore', {
+          params: { path: { role: id } },
+          body: undefined as never,
+        }),
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'roles'] });
+      cb?.onSuccessMessage?.('Perfil restaurado!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao restaurar perfil.'),
   });
 }
 

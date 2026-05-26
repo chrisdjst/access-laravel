@@ -6,6 +6,7 @@ import { fixtures } from '../../test/fixtures.js';
 import { server } from '../../test/server.js';
 import { renderHookWithProviders } from '../../test/wrap.js';
 import {
+  useAdminAudit,
   useAdminLanguages,
   useAdminModules,
   useAdminRole,
@@ -309,5 +310,40 @@ describe('useSetDefaultLanguage', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.data?.is_default).toBe(true);
+  });
+});
+
+// ============================================================================
+// Audit
+// ============================================================================
+
+describe('useAdminAudit', () => {
+  it('returns the audit entries', async () => {
+    const { result } = renderHookWithProviders(() => useAdminAudit());
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.[0]?.event_name).toBe('module.created');
+  });
+
+  it('forwards filter params to the URL', async () => {
+    let capturedUrl: string | null = null;
+    server.use(
+      http.get(`${API}/audit`, ({ request }) => {
+        capturedUrl = request.url;
+
+        return HttpResponse.json({
+          data: [],
+          meta: { total: 0, limit: 25, offset: 0 },
+        });
+      }),
+    );
+
+    const { result } = renderHookWithProviders(() =>
+      useAdminAudit({ event: 'module.created', limit: 50 }),
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(capturedUrl).toContain('event=module.created');
+    expect(capturedUrl).toContain('limit=50');
   });
 });

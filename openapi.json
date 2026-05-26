@@ -581,7 +581,25 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AuditEntry"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/components/schemas/PaginatedMeta"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1497,6 +1515,52 @@
                     "errors": {
                         "type": [
                             "object",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "AuditEntry": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "event_name": {
+                        "type": "string"
+                    },
+                    "actor_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "tenant_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "payload": {
+                        "type": "object"
+                    },
+                    "occurred_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "entry_hash": {
+                        "description": "sha256 hex of previous_hash || canonical(this). Present only when access.audit.hash_chain.enabled is true.",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "previous_hash": {
+                        "type": [
+                            "string",
                             "null"
                         ]
                     }

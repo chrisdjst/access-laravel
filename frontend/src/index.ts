@@ -20,9 +20,15 @@ export {
   type LanguagesAdminProps,
   type LanguagesAdminLabels,
 } from './components/LanguagesAdmin.js';
+export {
+  AuditViewer,
+  type AuditViewerProps,
+  type AuditViewerLabels,
+} from './components/AuditViewer.js';
 
 // React Query hooks
 export {
+  useAdminAudit,
   useAdminLanguages,
   useAdminModules,
   useAdminRole,
@@ -41,6 +47,8 @@ export {
   useUpdateLanguage,
   useUpdateModule,
   useUpdateRole,
+  type AuditEntry,
+  type AuditIndexQuery,
   type BulkDeleteModulesPayload,
   type CreateModulePayload,
   type Language,

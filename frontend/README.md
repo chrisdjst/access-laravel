@@ -30,8 +30,9 @@ import {
   useSetDefaultLanguage,
 } from '@modularize-rbac/admin-react';
 
-// (Storybook-driven) reference components — ship in v0.2+.
-// import { RolesPage, ModulesTreeEditor, LanguagesAdmin, AuditViewer, AccessGuard } from '@modularize-rbac/admin-react';
+// Reference components (ship pre-built):
+import { AccessGuard, AccessGuardProvider, useHasAbility } from '@modularize-rbac/admin-react';
+// RolesPage, ModulesTreeEditor, LanguagesAdmin, AuditViewer ship in subsequent 0.x releases.
 ```
 
 ## Setup
@@ -57,6 +58,39 @@ export default function App() {
   );
 }
 ```
+
+## Reference components
+
+### `<AccessGuard />` + `<AccessGuardProvider />`
+
+Conditionally render UI based on the current user's abilities. The package does *not* fetch the ability list — the host already knows what the current user can do (auth response, JWT claims, session). Wrap the relevant subtree in `<AccessGuardProvider abilities={...} />` and nested `<AccessGuard ability="...">` reads it without prop drilling.
+
+```tsx
+import { AccessGuard, AccessGuardProvider } from '@modularize-rbac/admin-react';
+
+export default function App() {
+  const { abilities } = useCurrentUser(); // host's own auth state
+
+  return (
+    <AccessGuardProvider abilities={abilities}>
+      <Toolbar />
+    </AccessGuardProvider>
+  );
+}
+
+function Toolbar() {
+  return (
+    <>
+      <AccessGuard ability="events.create"><CreateButton /></AccessGuard>
+      <AccessGuard ability="events.delete" fallback={<DisabledHint />}>
+        <DeleteButton />
+      </AccessGuard>
+    </>
+  );
+}
+```
+
+The `useHasAbility(ability, abilities?)` hook is also exported for ad-hoc imperative checks (e.g. inside a route loader).
 
 ## Using hooks
 

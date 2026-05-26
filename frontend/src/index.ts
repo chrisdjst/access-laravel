@@ -13,6 +13,15 @@ export {
 // Provider + hook
 export { RbacProvider, useRbacApi } from './provider.js';
 
+// Components
+export {
+  AccessGuard,
+  AccessGuardProvider,
+  useHasAbility,
+  type AccessGuardProps,
+  type AccessGuardProviderProps,
+} from './components/AccessGuard.js';
+
 // React Query hooks
 export {
   useAdminLanguages,

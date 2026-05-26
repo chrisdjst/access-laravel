@@ -13,6 +13,13 @@ export {
 // Provider + hook
 export { RbacProvider, useRbacApi } from './provider.js';
 
+// Components
+export {
+  LanguagesAdmin,
+  type LanguagesAdminProps,
+  type LanguagesAdminLabels,
+} from './components/LanguagesAdmin.js';
+
 // React Query hooks
 export {
   useAdminLanguages,

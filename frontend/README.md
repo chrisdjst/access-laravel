@@ -30,8 +30,9 @@ import {
   useSetDefaultLanguage,
 } from '@modularize-rbac/admin-react';
 
-// (Storybook-driven) reference components — ship in v0.2+.
-// import { RolesPage, ModulesTreeEditor, LanguagesAdmin, AuditViewer, AccessGuard } from '@modularize-rbac/admin-react';
+// Reference components (ship pre-built):
+import { LanguagesAdmin } from '@modularize-rbac/admin-react';
+// RolesPage, ModulesTreeEditor, AuditViewer, AccessGuard ship in subsequent 0.x releases.
 ```
 
 ## Setup
@@ -57,6 +58,22 @@ export default function App() {
   );
 }
 ```
+
+## Reference components
+
+### `<LanguagesAdmin />`
+
+CRUD table for the configured languages with a "set as default" action gated by a confirmation modal (changing the default cascades through translation fallbacks). Default-language rows cannot be deleted — the API itself refuses with a 422 anyway.
+
+```tsx
+import { LanguagesAdmin } from '@modularize-rbac/admin-react';
+
+export function AdminLanguagesRoute() {
+  return <LanguagesAdmin />;
+}
+```
+
+All visible strings (including the default-change warning) override via the `labels` prop.
 
 ## Using hooks
 

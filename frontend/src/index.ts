@@ -25,6 +25,13 @@ export {
   type AuditViewerProps,
   type AuditViewerLabels,
 } from './components/AuditViewer.js';
+export {
+  AccessGuard,
+  AccessGuardProvider,
+  useHasAbility,
+  type AccessGuardProps,
+  type AccessGuardProviderProps,
+} from './components/AccessGuard.js';
 
 // React Query hooks
 export {

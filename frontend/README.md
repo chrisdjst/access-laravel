@@ -31,8 +31,15 @@ import {
 } from '@modularize-rbac/admin-react';
 
 // Reference components (ship pre-built):
-import { RolesPage, ModulesTreeEditor, LanguagesAdmin, AuditViewer } from '@modularize-rbac/admin-react';
-// AccessGuard ships in a subsequent 0.x release.
+import {
+  RolesPage,
+  ModulesTreeEditor,
+  LanguagesAdmin,
+  AuditViewer,
+  AccessGuard,
+  AccessGuardProvider,
+  useHasAbility,
+} from '@modularize-rbac/admin-react';
 ```
 
 ## Setup
@@ -116,6 +123,37 @@ export function AdminAuditRoute() {
 ```
 
 The default event dropdown lists the standard domain events; pass `labels.filters.event` (or override with a custom select on top) to expose application-specific event names.
+
+### `<AccessGuard />` + `<AccessGuardProvider />`
+
+Conditionally render UI based on the current user's abilities. The package does *not* fetch the ability list — the host already knows what the current user can do (auth response, JWT claims, session). Wrap the relevant subtree in `<AccessGuardProvider abilities={...} />` and nested `<AccessGuard ability="...">` reads it without prop drilling.
+
+```tsx
+import { AccessGuard, AccessGuardProvider } from '@modularize-rbac/admin-react';
+
+export default function App() {
+  const { abilities } = useCurrentUser(); // host's own auth state
+
+  return (
+    <AccessGuardProvider abilities={abilities}>
+      <Toolbar />
+    </AccessGuardProvider>
+  );
+}
+
+function Toolbar() {
+  return (
+    <>
+      <AccessGuard ability="events.create"><CreateButton /></AccessGuard>
+      <AccessGuard ability="events.delete" fallback={<DisabledHint />}>
+        <DeleteButton />
+      </AccessGuard>
+    </>
+  );
+}
+```
+
+The `useHasAbility(ability, abilities?)` hook is also exported for ad-hoc imperative checks (e.g. inside a route loader).
 
 ## Using hooks
 

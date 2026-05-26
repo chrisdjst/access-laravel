@@ -4,6 +4,8 @@ Laravel bridge for [`modularize-rbac/core`](https://github.com/chrisdjst/access-
 
 [![CI](https://github.com/chrisdjst/access-laravel/actions/workflows/ci.yml/badge.svg)](https://github.com/chrisdjst/access-laravel/actions/workflows/ci.yml)
 [![Packagist](https://img.shields.io/packagist/v/modularize-rbac/laravel.svg)](https://packagist.org/packages/modularize-rbac/laravel)
+[![npm sdk-ts](https://img.shields.io/npm/v/@modularize-rbac/sdk-ts.svg?label=%40modularize-rbac%2Fsdk-ts)](https://www.npmjs.com/package/@modularize-rbac/sdk-ts)
+[![npm admin-react](https://img.shields.io/npm/v/@modularize-rbac/admin-react.svg?label=%40modularize-rbac%2Fadmin-react)](https://www.npmjs.com/package/@modularize-rbac/admin-react)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## What v2.0 ships
@@ -256,13 +258,15 @@ type Role = components['schemas']['Role'];
 Drop-in admin UI built on Radix Themes + React Query: `<RolesPage />`, `<ModulesTreeEditor />`, `<LanguagesAdmin />`, `<AuditViewer />`, `<AccessGuard />`. Each component renders against the same `openapi.json` so they always match the API the bridge exposes.
 
 ```bash
-npm i @modularize-rbac/admin-react @modularize-rbac/sdk-ts @tanstack/react-query
+npm i @modularize-rbac/admin-react @modularize-rbac/sdk-ts @tanstack/react-query @radix-ui/themes
 ```
 
 ```tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Theme } from '@radix-ui/themes';
 import { createClient } from '@modularize-rbac/sdk-ts';
 import { RbacProvider, RolesPage } from '@modularize-rbac/admin-react';
+import '@radix-ui/themes/styles.css';
 
 const queryClient = new QueryClient();
 const apiClient = createClient({ baseUrl: '/api/admin' });
@@ -270,9 +274,11 @@ const apiClient = createClient({ baseUrl: '/api/admin' });
 export default function AdminApp() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RbacProvider apiClient={apiClient}>
-        <RolesPage limit={25} />
-      </RbacProvider>
+      <Theme accentColor="indigo" radius="medium">
+        <RbacProvider apiClient={apiClient}>
+          <RolesPage limit={25} />
+        </RbacProvider>
+      </Theme>
     </QueryClientProvider>
   );
 }

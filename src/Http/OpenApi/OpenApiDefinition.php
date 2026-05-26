@@ -79,6 +79,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'code', type: 'string'),
         new OA\Property(property: 'name', type: 'string'),
         new OA\Property(property: 'is_default', type: 'boolean'),
+        new OA\Property(property: 'is_active', type: 'boolean'),
     ],
 )]
 #[OA\Schema(
@@ -513,6 +514,7 @@ final class OpenApiDefinition
             new OA\Property(property: 'code', type: 'string'),
             new OA\Property(property: 'name', type: 'string'),
             new OA\Property(property: 'is_default', type: 'boolean'),
+            new OA\Property(property: 'is_active', type: 'boolean'),
         ])),
         responses: [
             new OA\Response(response: 201, description: 'Created', content: new OA\JsonContent(properties: [
@@ -550,6 +552,7 @@ final class OpenApiDefinition
             new OA\Property(property: 'code', type: 'string'),
             new OA\Property(property: 'name', type: 'string'),
             new OA\Property(property: 'is_default', type: 'boolean'),
+            new OA\Property(property: 'is_active', type: 'boolean'),
         ])),
         responses: [
             new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [

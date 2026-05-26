@@ -1136,6 +1136,9 @@
                                     },
                                     "is_default": {
                                         "type": "boolean"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -1232,6 +1235,9 @@
                                         "type": "string"
                                     },
                                     "is_default": {
+                                        "type": "boolean"
+                                    },
+                                    "is_active": {
                                         "type": "boolean"
                                     }
                                 },
@@ -1458,6 +1464,9 @@
                         "type": "string"
                     },
                     "is_default": {
+                        "type": "boolean"
+                    },
+                    "is_active": {
                         "type": "boolean"
                     }
                 },

@@ -283,6 +283,7 @@ export type components = {
             readonly code?: string;
             /** Format: uuid */
             readonly id?: string;
+            readonly is_active?: boolean;
             readonly is_default?: boolean;
             readonly name?: string;
         };
@@ -410,6 +411,7 @@ export interface operations {
             readonly content: {
                 readonly "application/json": {
                     readonly code?: string;
+                    readonly is_active?: boolean;
                     readonly is_default?: boolean;
                     readonly name?: string;
                 };
@@ -480,6 +482,7 @@ export interface operations {
             readonly content: {
                 readonly "application/json": {
                     readonly code?: string;
+                    readonly is_active?: boolean;
                     readonly is_default?: boolean;
                     readonly name?: string;
                 };

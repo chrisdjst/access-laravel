@@ -15,6 +15,11 @@ export { RbacProvider, useRbacApi } from './provider.js';
 
 // Components
 export { RolesPage, type RolesPageProps, type RolesPageLabels } from './components/RolesPage.js';
+export {
+  LanguagesAdmin,
+  type LanguagesAdminProps,
+  type LanguagesAdminLabels,
+} from './components/LanguagesAdmin.js';
 
 // React Query hooks
 export {

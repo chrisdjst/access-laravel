@@ -31,8 +31,8 @@ import {
 } from '@modularize-rbac/admin-react';
 
 // Reference components (ship pre-built):
-import { RolesPage, ModulesTreeEditor } from '@modularize-rbac/admin-react';
-// LanguagesAdmin, AuditViewer, AccessGuard ship in subsequent 0.x releases.
+import { RolesPage, ModulesTreeEditor, LanguagesAdmin } from '@modularize-rbac/admin-react';
+// AuditViewer, AccessGuard ship in subsequent 0.x releases.
 ```
 
 ## Setup
@@ -88,6 +88,20 @@ export function AdminModulesRoute() {
 ```
 
 Every label is overridable via the `labels` prop (`ModulesTreeEditorLabels`). The component issues one `PUT /modules/{id}` per row when a drag completes (one per affected sort_order), batched by React Query.
+
+### `<LanguagesAdmin />`
+
+CRUD table for the configured languages with a "set as default" action gated by a confirmation modal (changing the default cascades through translation fallbacks). Default-language rows cannot be deleted — the API itself refuses with a 422 anyway.
+
+```tsx
+import { LanguagesAdmin } from '@modularize-rbac/admin-react';
+
+export function AdminLanguagesRoute() {
+  return <LanguagesAdmin />;
+}
+```
+
+All visible strings (including the default-change warning) override via the `labels` prop.
 
 ## Using hooks
 

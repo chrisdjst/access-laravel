@@ -2,6 +2,30 @@
 
 All notable changes to `modularize-rbac/laravel` are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [2.8.1] - 2026-05-25
+
+Patch release: docs-only. The TypeScript/React companion packages were renamed from `@casamento/*` to the public `@modularize-rbac/*` npm org, alongside a brand new spec-derived SDK and Storybook-driven UI library.
+
+### Added
+
+- **README "Frontend & SDK" section** documenting the two new npm packages and the Postman collection.
+  - `@modularize-rbac/sdk-ts` — typed REST SDK generated from `openapi.json` via `openapi-typescript` + `openapi-fetch`. Zero runtime when imported type-only.
+  - `@modularize-rbac/admin-react` — drop-in React admin components built on Radix Themes + React Query: `<RolesPage />`, `<ModulesTreeEditor />`, `<LanguagesAdmin />`, `<AuditViewer />`, `<AccessGuard />`. Every component ships with a Storybook story driven by `msw` mock handlers.
+  - `postman.json` — committed at repo root, regenerated from the same spec, kept in sync by the `sdk-ts-drift` CI gate.
+- **Spec polish** to support the React surface:
+  - `Language` schema and POST/PUT bodies gain `is_active` (the model already supported it).
+  - `AuditEntry` schema added; `GET /audit` response body filled in with `{data: AuditEntry[], meta: PaginatedMeta}`.
+  - `POST /roles`, `POST /roles/{role}/clone`, `DELETE /roles/{role}`, `POST /roles/{role}/restore`, `POST /modules`, `DELETE /modules/{id}`, `DELETE /modules/bulk` already implemented in v2.8.0 are now reflected in the typed paths.
+- **`RELEASING.md`** documents the Composer + tag-driven npm publish flows.
+
+### Changed
+
+- **`@casamento/admin-rbac` is unmaintained**. Hosts that depend on it should follow the search-replace migration in [UPGRADING.md](./UPGRADING.md#v280--v281--frontend-package-rename). The legacy package will not receive further updates.
+
+### Infrastructure
+
+- New workflow `.github/workflows/npm-publish.yml` publishes both packages on tag push (`sdk-ts-v*` / `admin-react-v*`).
+
 ## [2.8.0] - 2026-05-25
 
 Minor release: schema + extensibility. Soft-delete on roles and languages with a `restore` endpoint, an append-only binding history table with a read endpoint, and (via `modularize-rbac/core` v1.9) an injectable `PermissionActionRegistry` for custom actions beyond the 5 CRUD. Two new migrations to run. See [UPGRADING.md](./UPGRADING.md#v27--v28) for details.

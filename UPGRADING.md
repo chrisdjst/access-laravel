@@ -4,6 +4,34 @@ This guide consolidates the upgrade notes for major and minor versions of the br
 
 ---
 
+## v2.8.0 → v2.8.1 — frontend package rename
+
+`v2.8.1` is docs-only on the PHP side. The TypeScript companion packages were renamed and republished under the public `@modularize-rbac` npm org.
+
+### Search-replace your frontend imports
+
+```diff
+- import { useAdminModules } from '@casamento/admin-rbac';
++ import { useAdminModules } from '@modularize-rbac/admin-react';
+```
+
+The hand-rolled type exports (`AdminModule`, `AdminRole`, …) are gone — they're now derived from the spec:
+
+```diff
+- import type { AdminModule } from '@casamento/admin-rbac';
++ import type { components } from '@modularize-rbac/admin-react';
++ type AdminModule = components['schemas']['Module'];
+```
+
+The legacy `@casamento/admin-rbac` package is unmaintained. The new packages are:
+
+- `@modularize-rbac/sdk-ts` — typed REST SDK generated from `openapi.json`.
+- `@modularize-rbac/admin-react` — drop-in React admin components + hooks.
+
+See the new "Frontend & SDK" section of the README for snippets.
+
+---
+
 ## v2.7 → v2.8
 
 `v2.8.0` is fully backwards compatible with `v2.7.x`. **Two new migrations to run.** The release ships three additive primitives that are either opt-in or preserve the v2.7 default response shape.

@@ -219,6 +219,71 @@ All routes under `config('access.route_prefix')` (default `api/admin`):
 | PUT | /languages/{id}/default | Mark as default |
 | **GET** | **/audit** | **List audit entries (`?event=&actor_id=&tenant_id=&since=&until=&limit=&offset=`)** |
 
+## Frontend & SDK
+
+The bridge ships an `openapi.json` at the repo root that is the source of truth for two companion npm packages and a Postman collection.
+
+### TypeScript SDK — `@modularize-rbac/sdk-ts`
+
+Spec-derived types + a thin `openapi-fetch` wrapper. Zero runtime cost when imported type-only.
+
+```bash
+npm i @modularize-rbac/sdk-ts
+```
+
+```ts
+import { createClient } from '@modularize-rbac/sdk-ts';
+
+const client = createClient({
+  baseUrl: 'https://app.test/api/admin',
+  headers: { Authorization: `Bearer ${token}` },
+});
+
+const { data, error } = await client.GET('/roles', {
+  params: { query: { guard: 'admin', limit: 25 } },
+});
+```
+
+Or use types only:
+
+```ts
+import type { paths, components } from '@modularize-rbac/sdk-ts';
+type Role = components['schemas']['Role'];
+```
+
+### React admin components — `@modularize-rbac/admin-react`
+
+Drop-in admin UI built on Radix Themes + React Query: `<RolesPage />`, `<ModulesTreeEditor />`, `<LanguagesAdmin />`, `<AuditViewer />`, `<AccessGuard />`. Each component renders against the same `openapi.json` so they always match the API the bridge exposes.
+
+```bash
+npm i @modularize-rbac/admin-react @modularize-rbac/sdk-ts @tanstack/react-query
+```
+
+```tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createClient } from '@modularize-rbac/sdk-ts';
+import { RbacProvider, RolesPage } from '@modularize-rbac/admin-react';
+
+const queryClient = new QueryClient();
+const apiClient = createClient({ baseUrl: '/api/admin' });
+
+export default function AdminApp() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RbacProvider apiClient={apiClient}>
+        <RolesPage limit={25} />
+      </RbacProvider>
+    </QueryClientProvider>
+  );
+}
+```
+
+Storybook with mock data lives in [`frontend/`](frontend/) — every component has a story.
+
+### Postman collection
+
+Regenerated from the same spec, committed at [`postman.json`](postman.json). Drag it into Postman or Insomnia to get all endpoints with example bodies. The `sdk-ts-drift` CI gate keeps both the TS types and the Postman collection in lockstep with `openapi.json`.
+
 ## Console commands
 
 - `php artisan access:diagnose` — pre-deploy health check.

@@ -6,12 +6,20 @@ import { fixtures } from '../../test/fixtures.js';
 import { server } from '../../test/server.js';
 import { renderHookWithProviders } from '../../test/wrap.js';
 import {
+  useAdminAudit,
   useAdminLanguages,
   useAdminModules,
   useAdminRole,
   useAdminRoles,
+  useBulkDeleteModules,
+  useCloneRole,
   useCreateLanguage,
+  useCreateModule,
+  useCreateRole,
   useDeleteLanguage,
+  useDeleteModule,
+  useDeleteRole,
+  useRestoreRole,
   useSetDefaultLanguage,
   useSyncRoleModules,
   useUpdateLanguage,
@@ -64,6 +72,57 @@ describe('useUpdateModule', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(errorMessage).toBe('Erro ao atualizar módulo.');
+  });
+});
+
+describe('useCreateModule', () => {
+  it('POSTs and resolves with the new module', async () => {
+    const { result } = renderHookWithProviders(() => useCreateModule());
+
+    result.current.mutate({
+      slug: 'reports',
+      name: 'Reports',
+      icon: null,
+      root_module_id: null,
+      sort_order: 0,
+      is_active: true,
+      translations: {},
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.slug).toBe('reports');
+    expect(result.current.data?.data?.id).toBe('new-module-uuid');
+  });
+});
+
+describe('useDeleteModule', () => {
+  it('DELETEs and resolves on 204', async () => {
+    const { result } = renderHookWithProviders(() => useDeleteModule());
+
+    result.current.mutate(fixtures.modules[0]!.id);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+});
+
+describe('useBulkDeleteModules', () => {
+  it('DELETEs /modules/bulk with an ids array and resolves on 204', async () => {
+    let capturedBody: { ids?: string[] } | null = null;
+    server.use(
+      http.delete(`${API}/modules/bulk`, async ({ request }) => {
+        capturedBody = (await request.json()) as { ids?: string[] };
+
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    const ids = [fixtures.modules[0]!.id, fixtures.modules[1]?.id ?? 'second-id'];
+    const { result } = renderHookWithProviders(() => useBulkDeleteModules());
+
+    result.current.mutate({ ids });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(capturedBody?.ids).toEqual(ids);
   });
 });
 
@@ -142,6 +201,59 @@ describe('useSyncRoleModules', () => {
   });
 });
 
+describe('useCreateRole', () => {
+  it('POSTs and resolves with the new role', async () => {
+    const { result } = renderHookWithProviders(() => useCreateRole());
+
+    result.current.mutate({
+      name: 'reviewer',
+      display_name: 'Reviewer',
+      guard_name: 'admin',
+      level: 40,
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.name).toBe('reviewer');
+    expect(result.current.data?.data?.id).toBe('new-role-uuid');
+  });
+});
+
+describe('useCloneRole', () => {
+  it('POSTs to /roles/:id/clone and resolves with the cloned role', async () => {
+    const { result } = renderHookWithProviders(() => useCloneRole());
+
+    result.current.mutate({
+      sourceRoleId: fixtures.roles[0]!.id,
+      payload: { name: 'admin_copy', display_name: 'Admin Copy' },
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.id).toBe('cloned-role-uuid');
+    expect(result.current.data?.data?.name).toBe('admin_copy');
+  });
+});
+
+describe('useDeleteRole', () => {
+  it('DELETEs and resolves on 204', async () => {
+    const { result } = renderHookWithProviders(() => useDeleteRole());
+
+    result.current.mutate(fixtures.roles[0]!.id);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+});
+
+describe('useRestoreRole', () => {
+  it('POSTs to /roles/:id/restore and resolves with the restored role', async () => {
+    const { result } = renderHookWithProviders(() => useRestoreRole());
+
+    result.current.mutate(fixtures.roles[0]!.id);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.deleted_at).toBeNull();
+  });
+});
+
 // ============================================================================
 // Languages
 // ============================================================================
@@ -198,5 +310,40 @@ describe('useSetDefaultLanguage', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.data?.is_default).toBe(true);
+  });
+});
+
+// ============================================================================
+// Audit
+// ============================================================================
+
+describe('useAdminAudit', () => {
+  it('returns the audit entries', async () => {
+    const { result } = renderHookWithProviders(() => useAdminAudit());
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.data?.[0]?.event_name).toBe('module.created');
+  });
+
+  it('forwards filter params to the URL', async () => {
+    let capturedUrl: string | null = null;
+    server.use(
+      http.get(`${API}/audit`, ({ request }) => {
+        capturedUrl = request.url;
+
+        return HttpResponse.json({
+          data: [],
+          meta: { total: 0, limit: 25, offset: 0 },
+        });
+      }),
+    );
+
+    const { result } = renderHookWithProviders(() =>
+      useAdminAudit({ event: 'module.created', limit: 50 }),
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(capturedUrl).toContain('event=module.created');
+    expect(capturedUrl).toContain('limit=50');
   });
 });

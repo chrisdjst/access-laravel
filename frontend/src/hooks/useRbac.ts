@@ -17,6 +17,7 @@ export interface MutationCallbacks {
 type Module = components['schemas']['Module'];
 type Role = components['schemas']['Role'];
 type Language = components['schemas']['Language'];
+type AuditEntry = components['schemas']['AuditEntry'];
 
 type UpdateModulePayload = NonNullable<paths['/modules/{id}']['put']['requestBody']> extends {
   content: { 'application/json': infer T };
@@ -24,7 +25,33 @@ type UpdateModulePayload = NonNullable<paths['/modules/{id}']['put']['requestBod
   ? T
   : never;
 
+type CreateModulePayload = NonNullable<paths['/modules']['post']['requestBody']> extends {
+  content: { 'application/json': infer T };
+}
+  ? T
+  : never;
+
+type BulkDeleteModulesPayload = NonNullable<
+  paths['/modules/bulk']['delete']['requestBody']
+> extends {
+  content: { 'application/json': infer T };
+}
+  ? T
+  : never;
+
 type UpdateRolePayload = NonNullable<paths['/roles/{role}']['put']['requestBody']> extends {
+  content: { 'application/json': infer T };
+}
+  ? T
+  : never;
+
+type CreateRolePayload = NonNullable<paths['/roles']['post']['requestBody']> extends {
+  content: { 'application/json': infer T };
+}
+  ? T
+  : never;
+
+type CloneRolePayload = NonNullable<paths['/roles/{role}/clone']['post']['requestBody']> extends {
   content: { 'application/json': infer T };
 }
   ? T
@@ -97,6 +124,56 @@ export function useUpdateModule(cb?: MutationCallbacks) {
   });
 }
 
+export function useCreateModule(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateModulePayload) =>
+      unwrap(api.POST('/modules', { body: payload })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'modules'] });
+      qc.invalidateQueries({ queryKey: ['me', 'modules'] });
+      cb?.onSuccessMessage?.('Módulo criado!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao criar módulo.'),
+  });
+}
+
+export function useDeleteModule(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.DELETE('/modules/{id}', { params: { path: { id } } })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'modules'] });
+      qc.invalidateQueries({ queryKey: ['me', 'modules'] });
+      cb?.onSuccessMessage?.('Módulo removido!');
+    },
+    onError: () => cb?.onErrorMessage?.('Não foi possível remover o módulo.'),
+  });
+}
+
+export function useBulkDeleteModules(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: BulkDeleteModulesPayload) =>
+      unwrap(api.DELETE('/modules/bulk', { body: payload })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'modules'] });
+      qc.invalidateQueries({ queryKey: ['me', 'modules'] });
+      cb?.onSuccessMessage?.('Módulos removidos!');
+    },
+    onError: () => cb?.onErrorMessage?.('Falha ao remover módulos em lote.'),
+  });
+}
+
+export type { CreateModulePayload, BulkDeleteModulesPayload };
+
 // ============================================================================
 // Roles
 // ============================================================================
@@ -135,6 +212,75 @@ export function useUpdateRole(cb?: MutationCallbacks) {
       cb?.onSuccessMessage?.('Perfil atualizado!');
     },
     onError: () => cb?.onErrorMessage?.('Erro ao atualizar perfil.'),
+  });
+}
+
+export function useCreateRole(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateRolePayload) => unwrap(api.POST('/roles', { body: payload })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'roles'] });
+      cb?.onSuccessMessage?.('Perfil criado!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao criar perfil.'),
+  });
+}
+
+export function useCloneRole(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ sourceId, payload }: { sourceId: string; payload: CloneRolePayload }) =>
+      unwrap(
+        api.POST('/roles/{role}/clone', {
+          params: { path: { role: sourceId } },
+          body: payload,
+        }),
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'roles'] });
+      cb?.onSuccessMessage?.('Perfil clonado!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao clonar perfil.'),
+  });
+}
+
+export function useDeleteRole(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.DELETE('/roles/{role}', { params: { path: { role: id } } })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'roles'] });
+      cb?.onSuccessMessage?.('Perfil removido!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao remover perfil.'),
+  });
+}
+
+export function useRestoreRole(cb?: MutationCallbacks) {
+  const api = useRbacApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(
+        api.POST('/roles/{role}/restore', {
+          params: { path: { role: id } },
+          body: undefined as never,
+        }),
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'roles'] });
+      cb?.onSuccessMessage?.('Perfil restaurado!');
+    },
+    onError: () => cb?.onErrorMessage?.('Erro ao restaurar perfil.'),
   });
 }
 
@@ -251,5 +397,22 @@ export function useSetDefaultLanguage(cb?: MutationCallbacks) {
   });
 }
 
+// ============================================================================
+// Audit
+// ============================================================================
+
+type AuditIndexQuery = paths['/audit']['get']['parameters']['query'];
+
+export function useAdminAudit(query?: AuditIndexQuery) {
+  const api = useRbacApi();
+
+  return useQuery({
+    queryKey: ['admin', 'audit', query ?? {}],
+    queryFn: () => unwrap(api.GET('/audit', { params: { query } })),
+  });
+}
+
+export type { AuditIndexQuery };
+
 // Convenience type re-exports for hosts that want strongly-typed callers.
-export type { Module, Role, Language };
+export type { Module, Role, Language, AuditEntry };

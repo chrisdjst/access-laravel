@@ -15,6 +15,15 @@ export const handlers = [
   http.get(`${API}/modules`, () =>
     HttpResponse.json({ data: fixtures.modules, meta: { count: fixtures.modules.length } }),
   ),
+  http.post(`${API}/modules`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+
+    return HttpResponse.json(
+      { data: { ...fixtures.modules[0], ...body, id: 'new-module-uuid' } },
+      { status: 201 },
+    );
+  }),
+  http.delete(`${API}/modules/bulk`, () => new HttpResponse(null, { status: 204 })),
   http.put(`${API}/modules/:id`, async ({ params, request }) => {
     const body = (await request.json()) as Record<string, unknown>;
 
@@ -22,11 +31,20 @@ export const handlers = [
       data: { ...fixtures.modules[0], id: params.id as string, ...body },
     });
   }),
+  http.delete(`${API}/modules/:id`, () => new HttpResponse(null, { status: 204 })),
 
   // Roles
   http.get(`${API}/roles`, () =>
     HttpResponse.json({ data: fixtures.roles, meta: { count: fixtures.roles.length } }),
   ),
+  http.post(`${API}/roles`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+
+    return HttpResponse.json(
+      { data: { ...fixtures.roles[0], ...body, id: 'new-role-uuid' } },
+      { status: 201 },
+    );
+  }),
   http.get(`${API}/roles/:role`, ({ params }) =>
     HttpResponse.json({
       data: { ...fixtures.roles[0], id: params.role as string },
@@ -39,6 +57,27 @@ export const handlers = [
       data: { ...fixtures.roles[0], id: params.role as string, ...body },
     });
   }),
+  http.delete(`${API}/roles/:role`, () => new HttpResponse(null, { status: 204 })),
+  http.post(`${API}/roles/:role/clone`, async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+
+    return HttpResponse.json(
+      {
+        data: {
+          ...fixtures.roles[0],
+          id: 'cloned-role-uuid',
+          parent_role_id: params.role as string,
+          ...body,
+        },
+      },
+      { status: 201 },
+    );
+  }),
+  http.post(`${API}/roles/:role/restore`, ({ params }) =>
+    HttpResponse.json({
+      data: { ...fixtures.roles[0], id: params.role as string, deleted_at: null },
+    }),
+  ),
   http.put(`${API}/roles/:role/modules`, async ({ params }) =>
     HttpResponse.json({
       data: { ...fixtures.roles[0], id: params.role as string },
@@ -66,6 +105,14 @@ export const handlers = [
   http.put(`${API}/languages/:id/default`, ({ params }) =>
     HttpResponse.json({
       data: { ...fixtures.languages[0], id: params.id as string, is_default: true },
+    }),
+  ),
+
+  // Audit
+  http.get(`${API}/audit`, () =>
+    HttpResponse.json({
+      data: fixtures.auditEntries,
+      meta: { total: fixtures.auditEntries.length, limit: 25, offset: 0 },
     }),
   ),
 ];

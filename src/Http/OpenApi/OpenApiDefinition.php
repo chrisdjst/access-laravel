@@ -79,6 +79,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'code', type: 'string'),
         new OA\Property(property: 'name', type: 'string'),
         new OA\Property(property: 'is_default', type: 'boolean'),
+        new OA\Property(property: 'is_active', type: 'boolean'),
     ],
 )]
 #[OA\Schema(
@@ -95,6 +96,19 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'message', type: 'string'),
         new OA\Property(property: 'error_type', type: 'string'),
         new OA\Property(property: 'errors', type: 'object', nullable: true),
+    ],
+)]
+#[OA\Schema(
+    schema: 'AuditEntry',
+    properties: [
+        new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'event_name', type: 'string'),
+        new OA\Property(property: 'actor_id', type: 'string', format: 'uuid', nullable: true),
+        new OA\Property(property: 'tenant_id', type: 'string', format: 'uuid', nullable: true),
+        new OA\Property(property: 'payload', type: 'object'),
+        new OA\Property(property: 'occurred_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'entry_hash', type: 'string', nullable: true, description: 'sha256 hex of previous_hash || canonical(this). Present only when access.audit.hash_chain.enabled is true.'),
+        new OA\Property(property: 'previous_hash', type: 'string', nullable: true),
     ],
 )]
 final class OpenApiDefinition
@@ -204,6 +218,29 @@ final class OpenApiDefinition
     public function listRoles(): void {}
 
     #[OA\Post(
+        path: '/roles',
+        operationId: 'roles.store',
+        tags: ['roles'],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'name', type: 'string'),
+            new OA\Property(property: 'display_name', type: 'string', nullable: true),
+            new OA\Property(property: 'guard_name', type: 'string'),
+            new OA\Property(property: 'organization_id', type: 'string', format: 'uuid', nullable: true),
+            new OA\Property(property: 'level', type: 'integer'),
+            new OA\Property(property: 'is_system', type: 'boolean'),
+            new OA\Property(property: 'parent_role_id', type: 'string', format: 'uuid', nullable: true),
+            new OA\Property(property: 'translations', type: 'object'),
+        ])),
+        responses: [
+            new OA\Response(response: 201, description: 'Created', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/Role'),
+            ])),
+            new OA\Response(response: 422, description: 'Validation failed'),
+        ],
+    )]
+    public function storeRole(): void {}
+
+    #[OA\Post(
         path: '/roles/{role}/clone',
         operationId: 'roles.clone',
         tags: ['roles'],
@@ -260,7 +297,10 @@ final class OpenApiDefinition
             new OA\Parameter(name: 'offset', in: 'query', schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'OK'),
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/AuditEntry')),
+                new OA\Property(property: 'meta', ref: '#/components/schemas/PaginatedMeta'),
+            ])),
         ],
     )]
     public function listAudit(): void {}
@@ -490,6 +530,7 @@ final class OpenApiDefinition
             new OA\Property(property: 'code', type: 'string'),
             new OA\Property(property: 'name', type: 'string'),
             new OA\Property(property: 'is_default', type: 'boolean'),
+            new OA\Property(property: 'is_active', type: 'boolean'),
         ])),
         responses: [
             new OA\Response(response: 201, description: 'Created', content: new OA\JsonContent(properties: [
@@ -527,6 +568,7 @@ final class OpenApiDefinition
             new OA\Property(property: 'code', type: 'string'),
             new OA\Property(property: 'name', type: 'string'),
             new OA\Property(property: 'is_default', type: 'boolean'),
+            new OA\Property(property: 'is_active', type: 'boolean'),
         ])),
         responses: [
             new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [

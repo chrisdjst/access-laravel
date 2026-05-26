@@ -132,7 +132,7 @@ export type paths = {
         };
         readonly get: operations["roles.index"];
         readonly put?: never;
-        readonly post?: never;
+        readonly post: operations["roles.store"];
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
@@ -274,6 +274,21 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        readonly AuditEntry: {
+            /** Format: uuid */
+            readonly actor_id?: string | null;
+            /** @description sha256 hex of previous_hash || canonical(this). Present only when access.audit.hash_chain.enabled is true. */
+            readonly entry_hash?: string | null;
+            readonly event_name?: string;
+            /** Format: uuid */
+            readonly id?: string;
+            /** Format: date-time */
+            readonly occurred_at?: string;
+            readonly payload?: Record<string, unknown>;
+            readonly previous_hash?: string | null;
+            /** Format: uuid */
+            readonly tenant_id?: string | null;
+        };
         readonly Error: {
             readonly error_type?: string;
             readonly errors?: Record<string, unknown> | null;
@@ -283,6 +298,7 @@ export type components = {
             readonly code?: string;
             /** Format: uuid */
             readonly id?: string;
+            readonly is_active?: boolean;
             readonly is_default?: boolean;
             readonly name?: string;
         };
@@ -373,7 +389,12 @@ export interface operations {
                 headers: {
                     readonly [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    readonly "application/json": {
+                        readonly data?: readonly components["schemas"]["AuditEntry"][];
+                        readonly meta?: components["schemas"]["PaginatedMeta"];
+                    };
+                };
             };
         };
     };
@@ -410,6 +431,7 @@ export interface operations {
             readonly content: {
                 readonly "application/json": {
                     readonly code?: string;
+                    readonly is_active?: boolean;
                     readonly is_default?: boolean;
                     readonly name?: string;
                 };
@@ -480,6 +502,7 @@ export interface operations {
             readonly content: {
                 readonly "application/json": {
                     readonly code?: string;
+                    readonly is_active?: boolean;
                     readonly is_default?: boolean;
                     readonly name?: string;
                 };
@@ -872,6 +895,50 @@ export interface operations {
                 content?: never;
             };
             /** @description Invalid query parameter */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    readonly "roles.store": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": {
+                    readonly display_name?: string | null;
+                    readonly guard_name?: string;
+                    readonly is_system?: boolean;
+                    readonly level?: number;
+                    readonly name?: string;
+                    /** Format: uuid */
+                    readonly organization_id?: string | null;
+                    /** Format: uuid */
+                    readonly parent_role_id?: string | null;
+                    readonly translations?: Record<string, unknown>;
+                };
+            };
+        };
+        readonly responses: {
+            /** @description Created */
+            readonly 201: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": {
+                        readonly data?: components["schemas"]["Role"];
+                    };
+                };
+            };
+            /** @description Validation failed */
             readonly 422: {
                 headers: {
                     readonly [name: string]: unknown;

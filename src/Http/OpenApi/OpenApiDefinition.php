@@ -97,6 +97,19 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'errors', type: 'object', nullable: true),
     ],
 )]
+#[OA\Schema(
+    schema: 'AuditEntry',
+    properties: [
+        new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'event_name', type: 'string'),
+        new OA\Property(property: 'actor_id', type: 'string', format: 'uuid', nullable: true),
+        new OA\Property(property: 'tenant_id', type: 'string', format: 'uuid', nullable: true),
+        new OA\Property(property: 'payload', type: 'object'),
+        new OA\Property(property: 'occurred_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'entry_hash', type: 'string', nullable: true, description: 'sha256 hex of previous_hash || canonical(this). Present only when access.audit.hash_chain.enabled is true.'),
+        new OA\Property(property: 'previous_hash', type: 'string', nullable: true),
+    ],
+)]
 final class OpenApiDefinition
 {
     // Module endpoints -----------------------------------------------
@@ -260,7 +273,10 @@ final class OpenApiDefinition
             new OA\Parameter(name: 'offset', in: 'query', schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'OK'),
+            new OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/AuditEntry')),
+                new OA\Property(property: 'meta', ref: '#/components/schemas/PaginatedMeta'),
+            ])),
         ],
     )]
     public function listAudit(): void {}

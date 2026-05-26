@@ -13,8 +13,16 @@ export {
 // Provider + hook
 export { RbacProvider, useRbacApi } from './provider.js';
 
+// Components
+export {
+  AuditViewer,
+  type AuditViewerProps,
+  type AuditViewerLabels,
+} from './components/AuditViewer.js';
+
 // React Query hooks
 export {
+  useAdminAudit,
   useAdminLanguages,
   useAdminModules,
   useAdminRole,
@@ -26,6 +34,8 @@ export {
   useUpdateLanguage,
   useUpdateModule,
   useUpdateRole,
+  type AuditEntry,
+  type AuditIndexQuery,
   type Language,
   type Module,
   type MutationCallbacks,

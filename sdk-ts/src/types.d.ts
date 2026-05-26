@@ -274,6 +274,21 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        readonly AuditEntry: {
+            /** Format: uuid */
+            readonly actor_id?: string | null;
+            /** @description sha256 hex of previous_hash || canonical(this). Present only when access.audit.hash_chain.enabled is true. */
+            readonly entry_hash?: string | null;
+            readonly event_name?: string;
+            /** Format: uuid */
+            readonly id?: string;
+            /** Format: date-time */
+            readonly occurred_at?: string;
+            readonly payload?: Record<string, unknown>;
+            readonly previous_hash?: string | null;
+            /** Format: uuid */
+            readonly tenant_id?: string | null;
+        };
         readonly Error: {
             readonly error_type?: string;
             readonly errors?: Record<string, unknown> | null;
@@ -373,7 +388,12 @@ export interface operations {
                 headers: {
                     readonly [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    readonly "application/json": {
+                        readonly data?: readonly components["schemas"]["AuditEntry"][];
+                        readonly meta?: components["schemas"]["PaginatedMeta"];
+                    };
+                };
             };
         };
     };

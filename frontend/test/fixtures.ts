@@ -44,4 +44,16 @@ export const fixtures = {
       is_default: true,
     },
   ],
+  auditEntries: [
+    {
+      id: '44444444-4444-4444-4444-444444444444',
+      event_name: 'module.created',
+      actor_id: '55555555-5555-5555-5555-555555555555',
+      tenant_id: null,
+      payload: { module_id: '11111111-1111-1111-1111-111111111111', slug: 'events' },
+      occurred_at: '2026-05-25T12:00:00+00:00',
+      entry_hash: 'abc123def456',
+      previous_hash: null,
+    },
+  ],
 } as const;

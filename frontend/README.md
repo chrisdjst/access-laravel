@@ -30,8 +30,9 @@ import {
   useSetDefaultLanguage,
 } from '@modularize-rbac/admin-react';
 
-// (Storybook-driven) reference components — ship in v0.2+.
-// import { RolesPage, ModulesTreeEditor, LanguagesAdmin, AuditViewer, AccessGuard } from '@modularize-rbac/admin-react';
+// Reference components (ship pre-built):
+import { AuditViewer } from '@modularize-rbac/admin-react';
+// RolesPage, ModulesTreeEditor, LanguagesAdmin, AccessGuard ship in subsequent 0.x releases.
 ```
 
 ## Setup
@@ -57,6 +58,22 @@ export default function App() {
   );
 }
 ```
+
+## Reference components
+
+### `<AuditViewer />`
+
+Paginated viewer for the audit log with filter controls (event / actor / tenant / time window) and per-row expandable JSON payload. Rows that participate in the v2.7 hash chain get a green "chain ok" badge. `[REDACTED]` markers in the payload (from the PII redaction layer) are highlighted in amber so reviewers can tell at a glance what was scrubbed.
+
+```tsx
+import { AuditViewer } from '@modularize-rbac/admin-react';
+
+export function AdminAuditRoute() {
+  return <AuditViewer limit={50} />;
+}
+```
+
+The default event dropdown lists the standard domain events; pass `labels.filters.event` (or override with a custom select on top) to expose application-specific event names.
 
 ## Using hooks
 

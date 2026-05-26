@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "id": "f7a78ebf-2d19-4f08-96a5-822f1707d5ac",
+      "id": "ba100ac1-ecd8-4dde-ac6c-ff8cba090f49",
       "name": "audit",
       "description": {
         "content": "Audit log query.",
@@ -9,7 +9,7 @@
       },
       "item": [
         {
-          "id": "13d8cda2-6c21-47a3-ae14-bd6df372dd0a",
+          "id": "3807aebf-5412-441b-b5c8-d70c8a4b11a2",
           "name": "audit.index",
           "request": {
             "name": "audit.index",
@@ -60,12 +60,18 @@
               ],
               "variable": []
             },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
             "method": "GET",
             "auth": null
           },
           "response": [
             {
-              "id": "12366b2d-b95d-44cc-83c9-bf990b2b10dc",
+              "id": "bddacfab-0b9d-42d9-a232-2f56e1a39aeb",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -107,6 +113,12 @@
                   ],
                   "variable": []
                 },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
                 "method": "GET",
                 "body": {}
               },
@@ -115,12 +127,12 @@
               "header": [
                 {
                   "key": "Content-Type",
-                  "value": "text/plain"
+                  "value": "application/json"
                 }
               ],
-              "body": "",
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"<uuid>\",\n      \"event_name\": \"<string>\",\n      \"actor_id\": \"<string,null-uuid>\",\n      \"tenant_id\": \"<string,null-uuid>\",\n      \"payload\": \"<object>\",\n      \"occurred_at\": \"<dateTime>\",\n      \"entry_hash\": \"<string,null>\",\n      \"previous_hash\": \"<string,null>\"\n    },\n    {\n      \"id\": \"<uuid>\",\n      \"event_name\": \"<string>\",\n      \"actor_id\": \"<string,null-uuid>\",\n      \"tenant_id\": \"<string,null-uuid>\",\n      \"payload\": \"<object>\",\n      \"occurred_at\": \"<dateTime>\",\n      \"entry_hash\": \"<string,null>\",\n      \"previous_hash\": \"<string,null>\"\n    }\n  ],\n  \"meta\": {\n    \"total\": \"<integer>\",\n    \"limit\": \"<integer>\",\n    \"offset\": \"<integer>\"\n  }\n}",
               "cookie": [],
-              "_postman_previewlanguage": "text"
+              "_postman_previewlanguage": "json"
             }
           ],
           "event": [],
@@ -132,7 +144,7 @@
       "event": []
     },
     {
-      "id": "25d545cb-486d-4d6f-b007-f38bba576d0b",
+      "id": "9b79f9df-c325-4b4e-8c73-2f39394a45a0",
       "name": "languages",
       "description": {
         "content": "Languages + the default-language flag.",
@@ -140,7 +152,7 @@
       },
       "item": [
         {
-          "id": "b77970d8-c1fb-481c-819a-286c948d5369",
+          "id": "d4c3ce0e-120a-4211-a993-9ccd71a8a811",
           "name": "languages.index",
           "request": {
             "name": "languages.index",
@@ -166,7 +178,7 @@
           },
           "response": [
             {
-              "id": "88b68c34-9316-4ecd-981e-ade2b1ee1f86",
+              "id": "73558e8e-7d69-4188-8539-e7bfe02964d3",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -207,7 +219,7 @@
           }
         },
         {
-          "id": "079e46d3-76d5-496f-b246-5ef330485d6a",
+          "id": "be435468-9579-467a-b07c-7d8e889fe9cd",
           "name": "languages.store",
           "request": {
             "name": "languages.store",
@@ -246,7 +258,7 @@
           },
           "response": [
             {
-              "id": "a82aac38-bd95-455c-8e4d-ee30bd5e07ee",
+              "id": "be5717c8-d273-4eec-83ce-291391d7a73e",
               "name": "Created",
               "originalRequest": {
                 "url": {
@@ -289,7 +301,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "fefaa987-74de-4d4e-8ecc-7f9284be47ca",
+              "id": "bd190799-3a7c-47e2-9f4c-a639613a4067",
               "name": "Validation failed",
               "originalRequest": {
                 "url": {
@@ -332,7 +344,7 @@
           }
         },
         {
-          "id": "6b418637-9202-4a34-916f-04dc9a9a7422",
+          "id": "dfb7510e-9067-4646-918b-f619bd8ec466",
           "name": "languages.show",
           "request": {
             "name": "languages.show",
@@ -367,7 +379,7 @@
           },
           "response": [
             {
-              "id": "d44b7cf9-ef8e-47dc-8755-f173b12c7b7c",
+              "id": "b75c1761-826f-4efc-b5b7-99d71f9d3605",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -411,7 +423,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "d248935d-166e-4bd7-9fe2-01288bcba60e",
+              "id": "81ce2e1b-84a5-4832-873a-90ef3af14b20",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -455,7 +467,7 @@
           }
         },
         {
-          "id": "7dfda50f-6575-4117-98db-505bcacac184",
+          "id": "71830ba0-407d-4796-be03-c5e9b45eaf5e",
           "name": "languages.update",
           "request": {
             "name": "languages.update",
@@ -503,7 +515,7 @@
           },
           "response": [
             {
-              "id": "f596114c-f885-4554-bc88-352eba6f113c",
+              "id": "238b9731-f254-449d-9985-9015c18cd1a5",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -555,7 +567,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "67aeda64-82f1-407a-bf13-cdb0c46a203f",
+              "id": "4983c5b9-d332-45cc-b3bd-11800f0c2848",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -601,7 +613,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "3b131b91-ccf3-432b-8206-9ed20b03c71b",
+              "id": "b93629d6-186d-419e-b4a5-4a8ffada14ff",
               "name": "Validation failed",
               "originalRequest": {
                 "url": {
@@ -653,7 +665,7 @@
           }
         },
         {
-          "id": "d099b45f-4bab-412c-a24d-3b2eef83f846",
+          "id": "c41d1144-5379-4b92-98d5-d7e656b61603",
           "name": "languages.destroy",
           "request": {
             "name": "languages.destroy",
@@ -682,7 +694,7 @@
           },
           "response": [
             {
-              "id": "9f484c8a-98dd-40fc-b78d-fcba2b0cafa5",
+              "id": "d7a17cd4-868c-4f18-8ff9-62c53fc65c70",
               "name": "No Content",
               "originalRequest": {
                 "url": {
@@ -720,7 +732,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "c94fefb3-03b2-4723-9841-6dc467f3e0d6",
+              "id": "0b1e51ab-672b-4663-98a6-62589b0ab1ce",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -758,7 +770,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "326ef2f3-1a8c-4382-876e-c7a9f3c84c94",
+              "id": "6d1e6c1d-5a55-490a-9c47-0bd13928b7c3",
               "name": "Default language cannot be deleted",
               "originalRequest": {
                 "url": {
@@ -802,7 +814,7 @@
           }
         },
         {
-          "id": "39bdfccc-2a15-4ade-acb5-3f10aada1ba3",
+          "id": "9b04e389-2f3c-4c2b-b888-078bd8c31304",
           "name": "languages.set Default",
           "request": {
             "name": "languages.set Default",
@@ -838,7 +850,7 @@
           },
           "response": [
             {
-              "id": "09672196-ce67-42ee-8633-95e68b6aa875",
+              "id": "9c1108a5-3ecc-489f-b6e4-40a849499fe6",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -883,7 +895,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "f4f6b0b9-232c-4738-82de-611bbd5f75c5",
+              "id": "1e9c9d9e-bb61-4f65-a35c-7cb5e7482d82",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -931,7 +943,7 @@
       "event": []
     },
     {
-      "id": "b0be5bc2-e7df-4fab-ab7f-39aab16a8343",
+      "id": "ae9082f9-bb95-4c26-8436-ece1848b7939",
       "name": "modules",
       "description": {
         "content": "Catalog of feature modules.",
@@ -939,7 +951,7 @@
       },
       "item": [
         {
-          "id": "f3f2639a-ad52-4b1c-8f45-7bc802ed8002",
+          "id": "7f663480-3075-4348-80f8-ee16f2649e21",
           "name": "modules.index",
           "request": {
             "name": "modules.index",
@@ -991,7 +1003,7 @@
           },
           "response": [
             {
-              "id": "aae633bf-b456-422b-87f1-1b34c209dd7c",
+              "id": "09b45853-34d8-44de-9e49-23b1ebfc5e91",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -1047,7 +1059,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "cba1d3d7-9798-4004-b8b4-c1e459bde274",
+              "id": "7b3dbe37-a088-461f-a31f-5cc8969804b3",
               "name": "Invalid query parameter",
               "originalRequest": {
                 "url": {
@@ -1109,7 +1121,7 @@
           }
         },
         {
-          "id": "158e950d-f818-4078-b72b-db91b601f77a",
+          "id": "4e298518-09ee-49a1-8c6f-4d8f4b1cf697",
           "name": "modules.store",
           "request": {
             "name": "modules.store",
@@ -1148,7 +1160,7 @@
           },
           "response": [
             {
-              "id": "6daae1a9-6c39-440b-b838-fa43da45ddf7",
+              "id": "093e7b3c-3135-493d-b6a9-69de2f14da18",
               "name": "Created",
               "originalRequest": {
                 "url": {
@@ -1191,7 +1203,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "2440272d-7687-42a2-82e8-0712c9e2a0af",
+              "id": "01699dbb-5165-4586-a80c-3c4bfb5c46ed",
               "name": "Validation failed",
               "originalRequest": {
                 "url": {
@@ -1234,7 +1246,7 @@
           }
         },
         {
-          "id": "e228d500-9520-4c43-9169-6c77b5e6ecd0",
+          "id": "5782a152-5a2d-4884-a9fd-5e7cdcd2e901",
           "name": "modules.bulk Store",
           "request": {
             "name": "modules.bulk Store",
@@ -1273,7 +1285,7 @@
           },
           "response": [
             {
-              "id": "7fac38e7-ff74-42e5-81c6-37b2fef7e747",
+              "id": "d402463c-2466-4afe-b48b-fe091d5ae8d0",
               "name": "Created",
               "originalRequest": {
                 "url": {
@@ -1311,7 +1323,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "4eea08ab-ca24-4d08-99e2-45b648b6bdad",
+              "id": "7082adcc-7d75-4b78-9c77-a07944a50a02",
               "name": "Validation failed",
               "originalRequest": {
                 "url": {
@@ -1349,7 +1361,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "c6266c0a-35c2-45cc-8bfc-12f135259297",
+              "id": "9e1653c8-8980-411d-8763-9f30ac7871c1",
               "name": "Rate limited",
               "originalRequest": {
                 "url": {
@@ -1393,7 +1405,7 @@
           }
         },
         {
-          "id": "f4f78f33-7494-43c7-b262-74a3363f90c6",
+          "id": "e67ce2b7-56b4-4a58-9917-e66f7cdd82fc",
           "name": "modules.bulk Destroy",
           "request": {
             "name": "modules.bulk Destroy",
@@ -1432,7 +1444,7 @@
           },
           "response": [
             {
-              "id": "55b95ff0-74d6-4915-a935-0649d0608189",
+              "id": "e91b575f-a3f4-4005-a6a3-2ce8a2354631",
               "name": "No Content",
               "originalRequest": {
                 "url": {
@@ -1470,7 +1482,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "393f771b-6656-4ab5-b956-c53d5f7d9a2b",
+              "id": "9d16cb9b-0909-4c56-a60e-3f94a0b87c8e",
               "name": "One or more ids missing",
               "originalRequest": {
                 "url": {
@@ -1508,7 +1520,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "675faad4-75b0-4366-b41e-b8362a65b68b",
+              "id": "53b89045-4ecb-488d-8ea1-00e5954aaf19",
               "name": "Rate limited",
               "originalRequest": {
                 "url": {
@@ -1552,7 +1564,7 @@
           }
         },
         {
-          "id": "b55ab14f-6249-4382-8ad6-dee069ddd996",
+          "id": "bf59514b-1415-44b3-b3fb-6408217935a0",
           "name": "modules.show",
           "request": {
             "name": "modules.show",
@@ -1587,7 +1599,7 @@
           },
           "response": [
             {
-              "id": "1570adcf-e024-46e4-a90c-26def15669c0",
+              "id": "65c6c170-347c-4308-b156-689847f39df9",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -1631,7 +1643,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "d0b36620-2ed0-4e5e-a04c-d9e27f603664",
+              "id": "96b0d4ec-fc45-4e34-9c38-2b9ea953c5d4",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -1675,7 +1687,7 @@
           }
         },
         {
-          "id": "a682886e-39c5-4401-9960-66751aad9c51",
+          "id": "06f9ea79-6845-425b-974d-42ebc62f6599",
           "name": "modules.update",
           "request": {
             "name": "modules.update",
@@ -1723,7 +1735,7 @@
           },
           "response": [
             {
-              "id": "dd7eb351-4ddd-4e88-bbbe-7b0b067db15f",
+              "id": "4233f376-13b8-45be-92ba-8c75380e5760",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -1775,7 +1787,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "83d917a1-58ea-4298-a0e6-ade1439195ff",
+              "id": "f93a0d5c-61ae-4d5b-ac97-a730639b4964",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -1821,7 +1833,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "0d32b27c-ca51-4186-aeec-5b46338c1123",
+              "id": "da888c06-0bc5-4896-919d-12c7fde718b0",
               "name": "Validation failed",
               "originalRequest": {
                 "url": {
@@ -1873,7 +1885,7 @@
           }
         },
         {
-          "id": "e057de6b-b40c-43b0-ad1d-6da44c349161",
+          "id": "7ffed7c3-3953-4b5c-8348-68b1f52f52bc",
           "name": "modules.destroy",
           "request": {
             "name": "modules.destroy",
@@ -1902,7 +1914,7 @@
           },
           "response": [
             {
-              "id": "8d75c809-f6eb-41c2-95e8-7b4e8a4585da",
+              "id": "69547d0d-beee-4c66-be0f-f199c54fc72f",
               "name": "No Content",
               "originalRequest": {
                 "url": {
@@ -1940,7 +1952,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "6f8e9290-3c2f-4f9a-a46e-2462882ccf79",
+              "id": "9f8c9217-a9b9-4970-8fcf-a532e1e04c19",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -1987,7 +1999,7 @@
       "event": []
     },
     {
-      "id": "ab316f9d-4411-42cb-a6a4-18b79ba6bc19",
+      "id": "22ba64fc-dd20-428c-9bee-46873ca36178",
       "name": "roles",
       "description": {
         "content": "Roles + their permission matrices.",
@@ -1995,7 +2007,7 @@
       },
       "item": [
         {
-          "id": "52cf6ea1-c156-4028-bcd9-6fe470778757",
+          "id": "30f569da-20e9-4a06-a544-5235e5a01b48",
           "name": "roles.index",
           "request": {
             "name": "roles.index",
@@ -2056,7 +2068,7 @@
           },
           "response": [
             {
-              "id": "0ee50b6b-24cb-412e-b480-f934e3e2635d",
+              "id": "5b76aa43-4832-4bfc-b46e-18d46ec291b0",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -2118,7 +2130,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "da125697-b02b-410c-b16b-ae14837f7c83",
+              "id": "fdb01a4d-8393-4704-af24-cb03d90f3e35",
               "name": "Invalid query parameter",
               "originalRequest": {
                 "url": {
@@ -2186,7 +2198,7 @@
           }
         },
         {
-          "id": "793476ce-83db-40aa-979a-a71da9641b8c",
+          "id": "5b5847e9-c190-4aca-8035-752d0f8df4d0",
           "name": "roles.clone",
           "request": {
             "name": "roles.clone",
@@ -2234,7 +2246,7 @@
           },
           "response": [
             {
-              "id": "4b744ff3-6e48-4421-bb27-b51f0c58ea3c",
+              "id": "162cc249-3dbc-4e2e-a2ee-96ae32a88d85",
               "name": "Created",
               "originalRequest": {
                 "url": {
@@ -2281,7 +2293,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "4935014c-0b10-44a0-ab26-73136abba9a6",
+              "id": "2465fdc8-86f2-42d1-805b-0dafd00505cc",
               "name": "Source role not found",
               "originalRequest": {
                 "url": {
@@ -2328,7 +2340,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "9f5278b6-f410-4fdc-80d4-51f38460d401",
+              "id": "c318ecfd-6af5-44f9-a7ff-6843916988c9",
               "name": "Validation failed",
               "originalRequest": {
                 "url": {
@@ -2375,7 +2387,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "1fc83014-2ad9-4018-994e-6d6e1b8d50b9",
+              "id": "4bbb6d22-02c9-4761-83b1-91fbca347d2b",
               "name": "Rate limited",
               "originalRequest": {
                 "url": {
@@ -2428,7 +2440,7 @@
           }
         },
         {
-          "id": "90235475-7766-4497-bdda-21a890366848",
+          "id": "bc5e4e3e-5caf-453d-98ab-5ca87aa4146d",
           "name": "roles.bulk Assign Users",
           "request": {
             "name": "roles.bulk Assign Users",
@@ -2477,7 +2489,7 @@
           },
           "response": [
             {
-              "id": "64c0d0e1-0d5a-4db8-b2ff-d34f81c73a44",
+              "id": "3e734390-cb96-48af-9983-f7d078e2ca43",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -2525,7 +2537,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "6d82307c-4b04-4b63-84c8-62412c5b4c2f",
+              "id": "688366e0-dc32-4847-82bf-8d97bf6bfaca",
               "name": "Role not found",
               "originalRequest": {
                 "url": {
@@ -2573,7 +2585,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "f6606f87-d334-4fec-a080-184949b45c20",
+              "id": "6854522d-9726-4530-8e9c-a194289db405",
               "name": "Rate limited",
               "originalRequest": {
                 "url": {
@@ -2627,7 +2639,7 @@
           }
         },
         {
-          "id": "ad61b2c9-f1fd-4b2d-a86b-68327c12b21b",
+          "id": "43ede7fb-1900-418f-8d06-d457e2d64a1b",
           "name": "roles.show",
           "request": {
             "name": "roles.show",
@@ -2662,7 +2674,7 @@
           },
           "response": [
             {
-              "id": "841c5d20-6b0f-47e4-b2ea-388707d08a83",
+              "id": "d1689e9e-754e-4817-9793-27b6a192c416",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -2706,7 +2718,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "35315c28-1c09-41d1-a9ee-5831e76715a1",
+              "id": "eae66f76-6656-421b-9305-4392ad840cd2",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -2750,7 +2762,7 @@
           }
         },
         {
-          "id": "15ec3444-66da-42e8-ba2e-6930b8682a07",
+          "id": "0cd846ed-9cae-4803-a1a9-7478805de602",
           "name": "roles.update",
           "request": {
             "name": "roles.update",
@@ -2798,7 +2810,7 @@
           },
           "response": [
             {
-              "id": "69d53d09-bb6f-4515-a8a0-839638844320",
+              "id": "d1988d87-7183-4632-ab92-d15eaf092e08",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -2850,7 +2862,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "e7b55a1d-e5ce-4ce8-8ee9-54851fd1c040",
+              "id": "86dd3d65-8db3-40f6-ae60-16667cf235d7",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -2896,7 +2908,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "f93e6288-b8f9-45f2-9026-70ad933bac22",
+              "id": "42dbdbba-c188-4d5c-817a-89933a1e42c6",
               "name": "Validation failed",
               "originalRequest": {
                 "url": {
@@ -2948,7 +2960,7 @@
           }
         },
         {
-          "id": "cc1f8697-f4cf-48d3-be29-c1df93106c74",
+          "id": "cbbc2309-1dda-4cd3-bea0-45f76b71822e",
           "name": "roles.destroy",
           "request": {
             "name": "roles.destroy",
@@ -2980,7 +2992,7 @@
           },
           "response": [
             {
-              "id": "e3a0610d-30a7-4bb5-b0d8-8a1d5b611200",
+              "id": "293a0e78-1001-497a-9a26-32ed8771f6a5",
               "name": "No Content",
               "originalRequest": {
                 "url": {
@@ -3018,7 +3030,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "0bc55db8-3912-4c43-805c-8ed290417381",
+              "id": "c3570e39-63be-4132-9e00-980b51181f62",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -3056,7 +3068,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "e1b8e560-d4a1-4eea-89d5-d75f5c5f1321",
+              "id": "37a690e9-b488-420f-b273-559ca067ba9e",
               "name": "Has bindings or is a system role",
               "originalRequest": {
                 "url": {
@@ -3100,7 +3112,7 @@
           }
         },
         {
-          "id": "81539b2e-4736-4d1c-990d-eb3208a746fb",
+          "id": "f4445698-bbb6-4b04-86b4-7db68d56fe67",
           "name": "roles.restore",
           "request": {
             "name": "roles.restore",
@@ -3136,7 +3148,7 @@
           },
           "response": [
             {
-              "id": "08dcd973-bb86-4b89-89b3-68fcef599acd",
+              "id": "15ddcd35-f530-4b3b-ab4b-4b91ea7a8138",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -3181,7 +3193,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "377f347a-7f86-4154-9d56-5f3b337ff516",
+              "id": "e67fec46-83bc-490c-80f6-27929371b36d",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -3220,7 +3232,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "34bd15cc-fc67-4e08-bdb7-210ee153b8fe",
+              "id": "eda5549a-399b-4772-9af7-3bcab4027926",
               "name": "Role is not soft-deleted",
               "originalRequest": {
                 "url": {
@@ -3265,7 +3277,7 @@
           }
         },
         {
-          "id": "509fccce-c5f4-41b7-9bce-132498fa39aa",
+          "id": "0f94a22f-53e7-4900-a2a5-83a1c04d24e8",
           "name": "roles.sync Modules",
           "request": {
             "name": "roles.sync Modules",
@@ -3314,7 +3326,7 @@
           },
           "response": [
             {
-              "id": "dbd553cd-389f-4dae-b4ff-e777aed60365",
+              "id": "93991d92-0515-4d5b-a3a2-da0107328232",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -3367,7 +3379,7 @@
               "_postman_previewlanguage": "json"
             },
             {
-              "id": "f8d95a67-c21b-4829-a83a-8cb1c2161c3a",
+              "id": "7133807b-33cc-4ff5-ac1b-89cd6d4c7a16",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -3414,7 +3426,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "4fafbbe6-f55f-4d34-b9f3-ca73bc478af1",
+              "id": "4f731156-2fad-4c2c-a1b7-5147da4ff377",
               "name": "Validation failed",
               "originalRequest": {
                 "url": {
@@ -3467,7 +3479,7 @@
           }
         },
         {
-          "id": "ed51fafb-34e2-411c-bda8-504416265467",
+          "id": "25f5039f-05bf-4246-8ee1-ff527b50acf3",
           "name": "roles.permission Matrix",
           "request": {
             "name": "roles.permission Matrix",
@@ -3497,7 +3509,7 @@
           },
           "response": [
             {
-              "id": "10256958-d908-433a-b854-3717ca7b2874",
+              "id": "8078aad9-5465-4ac3-9333-976251470096",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -3536,7 +3548,7 @@
               "_postman_previewlanguage": "text"
             },
             {
-              "id": "68456d93-07c4-41dc-8b8f-583bce92f11e",
+              "id": "32f3755b-e9a7-4b5d-aff9-9bd2695d0f2f",
               "name": "Not found",
               "originalRequest": {
                 "url": {
@@ -3581,7 +3593,7 @@
           }
         },
         {
-          "id": "89ebbb48-1422-46e2-8117-f16efe770c97",
+          "id": "36619abf-76f4-4244-ad60-665cda287aaa",
           "name": "roles.bindings History",
           "request": {
             "name": "roles.bindings History",
@@ -3633,7 +3645,7 @@
           },
           "response": [
             {
-              "id": "7c6525a5-31d7-445a-984c-d20381e9d3b9",
+              "id": "317ce54e-0af4-4ae7-863f-81c282f16309",
               "name": "OK",
               "originalRequest": {
                 "url": {
@@ -3699,7 +3711,7 @@
       "event": []
     },
     {
-      "id": "71828bb6-31eb-409c-9f8b-ad3230bdb9b3",
+      "id": "089c8c71-2fe8-4a72-bd6b-c0e91b4de3f7",
       "name": "users",
       "description": {
         "content": "User-facing read endpoints.",
@@ -3707,7 +3719,7 @@
       },
       "item": [
         {
-          "id": "e8a821b6-0acb-4859-b044-9594f8ab0513",
+          "id": "b67bd27c-368c-473a-8f2e-fc2885e818f3",
           "name": "users.accessible Modules",
           "request": {
             "name": "users.accessible Modules",
@@ -3737,7 +3749,7 @@
           },
           "response": [
             {
-              "id": "933e5405-da50-45d1-b77c-10a06fe3b4ac",
+              "id": "b28ef761-8f7c-4e35-bf9b-6bee2bb99009",
               "name": "OK",
               "originalRequest": {
                 "url": {

@@ -17,6 +17,7 @@ export interface MutationCallbacks {
 type Module = components['schemas']['Module'];
 type Role = components['schemas']['Role'];
 type Language = components['schemas']['Language'];
+type AuditEntry = components['schemas']['AuditEntry'];
 
 type UpdateModulePayload = NonNullable<paths['/modules/{id}']['put']['requestBody']> extends {
   content: { 'application/json': infer T };
@@ -251,5 +252,22 @@ export function useSetDefaultLanguage(cb?: MutationCallbacks) {
   });
 }
 
+// ============================================================================
+// Audit
+// ============================================================================
+
+type AuditIndexQuery = paths['/audit']['get']['parameters']['query'];
+
+export function useAdminAudit(query?: AuditIndexQuery) {
+  const api = useRbacApi();
+
+  return useQuery({
+    queryKey: ['admin', 'audit', query ?? {}],
+    queryFn: () => unwrap(api.GET('/audit', { params: { query } })),
+  });
+}
+
+export type { AuditIndexQuery };
+
 // Convenience type re-exports for hosts that want strongly-typed callers.
-export type { Module, Role, Language };
+export type { Module, Role, Language, AuditEntry };

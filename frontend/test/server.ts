@@ -68,6 +68,14 @@ export const handlers = [
       data: { ...fixtures.languages[0], id: params.id as string, is_default: true },
     }),
   ),
+
+  // Audit
+  http.get(`${API}/audit`, () =>
+    HttpResponse.json({
+      data: fixtures.auditEntries,
+      meta: { total: fixtures.auditEntries.length, limit: 25, offset: 0 },
+    }),
+  ),
 ];
 
 export const server = setupServer(...handlers);
